@@ -1,0 +1,15 @@
+train_net: "human/config/gan/train_pose_D_nagetive.prototxt"
+
+base_lr: 0.0001
+lr_policy: "step"
+
+display: 20
+gamma: 0.1
+max_iter: 3100
+stepsize: 3100
+momentum: 0.9
+weight_decay: 0.0005
+snapshot: 3100
+snapshot_prefix: "human/model/gan/train_D"
+solver_mode: GPU
+#debug_info: true

@@ -1,0 +1,213 @@
+name: "human/config/gan/train_pose_D_positive.prototxt"
+
+
+layer {
+  name: "data_pose"
+  type: "DataHeatmap"
+  top: "data_pose"
+  top: "label_pose"
+  include: { phase: TRAIN }
+  heatmap_data_param {
+    source: "human/list/train_pose.txt"
+    root_img_dir: "human/data/images/"
+    batchsize: 10
+    outsize: 321
+    label_width: 41
+    label_height: 41
+  }
+}
+##################################################################
+
+
+##################################################################
+####################Discriminator#################################
+layer {
+  name: "conv1_1_discriminator"
+  type: "Convolution"
+  bottom: "label_pose"
+  top: "conv1_1_discriminator"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 32
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu1_1_discriminator"
+  type: "ReLU"
+  bottom: "conv1_1_discriminator"
+  top: "conv1_1_discriminator"
+}
+layer {
+  name: "conv1_2_discriminator"
+  type: "Convolution"
+  bottom: "conv1_1_discriminator"
+  top: "conv1_2_discriminator"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 32
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu1_2_discriminator"
+  type: "ReLU"
+  bottom: "conv1_2_discriminator"
+  top: "conv1_2_discriminator"
+}
+layer {
+  name: "pool1_discriminator"
+  type: "Pooling"
+  bottom: "conv1_2_discriminator"
+  top: "pool1_discriminator"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+layer {
+  name: "fc3_discriminator"
+  type: "InnerProduct"
+  bottom: "pool1_discriminator"
+  top: "fc3_discriminator"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 64
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
+}
+layer {
+  name: "relu3_discriminator"
+  type: "ReLU"
+  bottom: "fc3_discriminator"
+  top: "fc3_discriminator"
+}
+layer {
+  name: "drop3_discriminator"
+  type: "Dropout"
+  bottom: "fc3_discriminator"
+  top: "fc3_discriminator"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {
+  name: "fc4_discriminator"
+  type: "InnerProduct"
+  bottom: "fc3_discriminator"
+  top: "fc4_discriminator"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 64
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
+}
+layer {
+  name: "relu4_discriminator"
+  type: "ReLU"
+  bottom: "fc4_discriminator"
+  top: "fc4_discriminator"
+}
+layer {
+  name: "drop4_discriminator"
+  type: "Dropout"
+  bottom: "fc4_discriminator"
+  top: "fc4_discriminator"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {
+  name: "fc5_discriminator"
+  type: "InnerProduct"
+  bottom: "fc4_discriminator"
+  top: "fc5_discriminator"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "loss"
+  type: "SoftmaxWithLoss"
+  bottom: "fc5_discriminator"
+  bottom: "data_pose"
+  top: "loss"
+}
+

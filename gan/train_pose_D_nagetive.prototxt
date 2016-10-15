@@ -1,0 +1,687 @@
+name: "human/config/gan/train_pose_D_negetive.prototxt"
+layer {
+  name: "data"
+  type: "ImageSegData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    mirror: true
+    crop_size: 321
+    mean_value: 104.008
+    mean_value: 116.669
+    mean_value: 122.675
+  }
+  image_data_param {
+    root_folder: "human/data"
+    source: "human/list/trainval.txt"
+    batch_size: 20
+    shuffle: true
+    label_type: PIXEL
+  }
+}
+layer {
+  bottom: "label"
+  top: "label_shrink"
+  name: "label_shrink"
+  type: "Interp"
+  interp_param {
+    shrink_factor: 8
+    pad_beg: 0
+    pad_end: 0
+  }
+}
+
+layer {
+  name: "silence"
+  type: "Silence"
+  bottom: "data"
+}
+##################################################################
+###################Generator######################################
+layer {  
+  bottom: "label_shrink"  
+  top: "conv1_1_generator"  
+  name: "conv1_1_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 64  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+}
+layer {
+  bottom: "conv1_1_generator"
+  top: "conv1_1_generator"
+  name: "ReLU1_1_generator"
+  type: "ReLU"
+}
+layer {  
+  bottom: "conv1_1_generator"  
+  top: "conv1_2_generator"  
+  name: "conv1_2_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 64  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+}  
+layer {
+  bottom: "conv1_2_generator"
+  top: "conv1_2_generator"
+  name: "ReLU1_2_generator"
+  type: "ReLU"
+}
+layer {
+  bottom: "conv1_2_generator"
+  top: "pool1_generator"
+  name: "pool1_generator"
+  type: "Pooling"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  bottom: "pool1_generator"  
+  top: "conv2_1_generator"  
+  name: "conv2_1_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 128  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+}  
+layer {
+  bottom: "conv2_1_generator"
+  top: "conv2_1_generator"
+  name: "ReLU2_1_generator"
+  type: "ReLU"
+}
+layer {  
+  bottom: "conv2_1_generator"  
+  top: "conv2_2_generator"  
+  name: "conv2_2_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 128  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+}  
+layer {
+  bottom: "conv2_2_generator"
+  top: "conv2_2_generator"
+  name: "ReLU2_2_generator"
+  type: "ReLU"
+}
+layer {
+  bottom: "conv2_2_generator"
+  top: "pool2_generator"
+  name: "pool2_generator"
+  type: "Pooling"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {  
+  bottom: "pool2_generator"  
+  top: "conv3_1_generator"  
+  name: "conv3_1_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 256  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+}  
+layer {
+  bottom: "conv3_1_generator"
+  top: "conv3_1_generator"
+  name: "ReLU3_1_generator"
+  type: "ReLU"
+}
+layer {  
+  bottom: "conv3_1_generator"  
+  top: "conv3_2_generator"  
+  name: "conv3_2_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 256  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+} 
+layer {
+  bottom: "conv3_2_generator"
+  top: "conv3_2_generator"
+  name: "ReLU3_2_generator"
+  type: "ReLU"
+}
+layer {  
+  bottom: "conv3_2_generator"  
+  top: "conv3_3_generator"  
+  name: "conv3_3_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 256  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+} 
+layer {
+  bottom: "conv3_3_generator"
+  top: "conv3_3_generator"
+  name: "ReLU3_3_generator"
+  type: "ReLU"
+}
+layer {
+  bottom: "conv3_3_generator"
+  top: "pool3_generator"
+  name: "pool3_generator"
+  type: "Pooling"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {  
+  bottom: "pool3_generator"  
+  top: "conv4_1_generator"  
+  name: "conv4_1_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 512  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+} 
+layer {
+  bottom: "conv4_1_generator"
+  top: "conv4_1_generator"
+  name: "ReLU4_1_generator"
+  type: "ReLU"
+}
+layer {  
+  bottom: "conv4_1_generator"  
+  top: "conv4_2_generator"  
+  name: "conv4_2_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 512  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+}  
+layer {
+  bottom: "conv4_2_generator"
+  top: "conv4_2_generator"
+  name: "ReLU4_2_generator"
+  type: "ReLU"
+}
+layer {  
+  bottom: "conv4_2_generator"  
+  top: "conv4_3_generator"  
+  name: "conv4_3_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 512  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+}  
+layer {
+  bottom: "conv4_3_generator"
+  top: "conv4_3_generator"
+  name: "ReLU4_3_generator"
+  type: "ReLU"
+}
+layer {
+  bottom: "conv4_3_generator"
+  top: "pool4_generator"
+  name: "pool4_generator"
+  type: "Pooling"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {  
+  bottom: "pool4_generator"  
+  top: "conv5_1_generator"  
+  name: "conv5_1_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 512  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+}  
+layer {
+  bottom: "conv5_1_generator"
+  top: "conv5_1_generator"
+  name: "ReLU5_1_generator"
+  type: "ReLU"
+}
+layer {  
+  bottom: "conv5_1_generator"  
+  top: "conv5_2_generator"  
+  name: "conv5_2_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 512  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+} 
+layer {
+  bottom: "conv5_2_generator"
+  top: "conv5_2_generator"
+  name: "ReLU5_2_generator"
+  type: "ReLU"
+}
+layer {  
+  bottom: "conv5_2_generator"  
+  top: "conv5_3_generator"  
+  name: "conv5_3_generator"  
+  type: "Convolution"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  convolution_param {  
+    num_output: 512  
+    pad: 1  
+    kernel_size: 3  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.01  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0  
+    }  
+  }  
+}  
+layer {
+  bottom: "conv5_3_generator"
+  top: "conv5_3_generator"
+  name: "ReLU5_3_generator"
+  type: "ReLU"
+}
+layer {
+  bottom: "conv5_3_generator"
+  top: "pool5_generator"
+  name: "pool5_generator"
+  type: "Pooling"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {  
+  bottom: "pool5_generator"  
+  top: "fc6_generator"  
+  name: "fc6_generator"  
+  type: "InnerProduct"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  inner_product_param {  
+    num_output: 4096  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.005  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0.1  
+    }  
+  }  
+}  
+layer {
+  bottom: "fc6_generator"
+  top: "fc6_generator"
+  name: "ReLU6_generator"
+  type: "ReLU"
+}
+layer {
+  bottom: "fc6_generator"
+  top: "fc6_generator"
+  name: "drop6_generator"
+  type: "Dropout"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {  
+  bottom: "fc6_generator"  
+  top: "fc7_generator"  
+  name: "fc7_generator"  
+  type: "InnerProduct"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  inner_product_param {  
+    num_output: 4096  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.005  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0.1  
+    }  
+  }  
+}  
+layer {
+  bottom: "fc7_generator"
+  top: "fc7_generator"
+  name: "ReLU7_generator"
+  type: "ReLU"
+}
+layer {
+  bottom: "fc7_generator"
+  top: "fc7_generator"
+  name: "drop7_generator"
+  type: "Dropout"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {  
+  bottom: "fc7_generator"  
+  top: "fc8_generator"  
+  name: "fc8_generator"  
+  type: "InnerProduct"  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  param {  
+    lr_mult: 0  
+    decay_mult: 0  
+  }  
+  inner_product_param {  
+    num_output: 18  
+    weight_filler {  
+      type: "gaussian"  
+      std: 0.005  
+    }  
+    bias_filler {  
+      type: "constant"  
+      value: 0.1  
+    }  
+  }  
+}
+layer {
+  name: "create_gan_label"
+  type: "CreateGan"
+  bottom: "fc8_generator"
+  top: "create_gan_label"
+  create_gan_param {
+    gan_label: 0
+  }
+}
+##################################################################
+####################Discriminator#################################
+
+layer {
+  name: "fc1_discriminator"
+  type: "InnerProduct"
+  bottom: "fc8_generator"
+  top: "fc1_discriminator"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
+}
+
+layer {
+  name: "accuracy"
+  type: "Accuracy"
+  bottom: "fc1_discriminator"
+  bottom: "create_gan_label"
+  top: "accuracy"
+}
+
+
+layer {
+  name: "loss"
+  type: "SoftmaxWithLoss"
+  bottom: "fc1_discriminator"
+  bottom: "create_gan_label"
+  top: "loss"
+}
+

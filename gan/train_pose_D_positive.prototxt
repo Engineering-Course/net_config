@@ -1,0 +1,118 @@
+name: "human/config/gan/train_pose_D_positive.prototxt"
+layer {
+  name: "data"
+  type: "ImageSegData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    mirror: true
+    crop_size: 321
+    mean_value: 104.008
+    mean_value: 116.669
+    mean_value: 122.675
+  }
+  image_data_param {
+    root_folder: "human/data"
+    source: "human/list/trainval.txt"
+    batch_size: 20
+    shuffle: true
+    label_type: PIXEL
+  }
+}
+layer {
+  bottom: "label"
+  top: "label_shrink"
+  name: "label_shrink"
+  type: "Interp"
+  interp_param {
+    shrink_factor: 8
+    pad_beg: 0
+    pad_end: 0
+  }
+}
+layer {
+  name: "pose_vector"
+  type: "PoseEvaluate"
+  bottom: "label_shrink"
+  top: "pose_vector"
+  pose_evaluate_param {
+    num_joint:9
+  }
+}
+layer {
+  name: "reshape_pose"
+  type: "Reshape"
+  bottom: "pose_vector"
+  top: "reshape_pose"
+  reshape_param {
+    shape: {
+      dim: 0
+      dim: -1
+      dim: 1
+      dim: 1
+    }
+  }
+}
+layer {
+  name: "create_gan_label"
+  type: "CreateGan"
+  bottom: "reshape_pose"
+  top: "create_gan_label"
+  create_gan_param {
+    gan_label: 1
+  }
+}
+layer {
+  name: "silence"
+  type: "Silence"
+  bottom: "data"
+}
+
+##################################################################
+####################Discriminator#################################
+
+layer {
+  name: "fc1_discriminator"
+  type: "InnerProduct"
+  bottom: "reshape_pose"
+  top: "fc1_discriminator"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
+}
+
+layer {
+  name: "accuracy"
+  type: "Accuracy"
+  bottom: "fc1_discriminator"
+  bottom: "create_gan_label"
+  top: "accuracy"
+}
+
+layer {
+  name: "loss"
+  type: "SoftmaxWithLoss"
+  bottom: "fc1_discriminator"
+  bottom: "create_gan_label"
+  top: "loss"
+}
+
