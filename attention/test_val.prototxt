@@ -13,7 +13,6 @@ layer {
   type: "ImageSegData"
   top: "data"
   top: "label"
-  top: "data_dim"
   image_data_param {
     root_folder: "human/data/"
     source: "human/list/val.txt"
@@ -1766,6 +1765,17 @@ layer {
   }
 }
 ############### upsampling ################
+#layer {
+#  bottom: "label"
+#  top: "label_shrink8"
+#  name: "label_shrink8"
+#  type: "Interp"
+#  interp_param {
+#    shrink_factor: 8
+#    pad_beg: 0
+#    pad_end: 0
+#  }
+#}
 layer {
   bottom: "fc8_fusion"
   top: "fc8_interp"
@@ -1798,10 +1808,19 @@ layer {
   }
   include: { phase: TEST }
 }
-
+#layer {
+#  name: "accuracy"
+#  type: "SegAccuracy"
+#  bottom: "fc8_fusion"
+#  bottom: "label_shrink8"
+#  top: "accuracy"
+#  seg_accuracy_param {
+#    ignore_label: 255
+#  } 
+#}
+#
 layer {
   name: "silence"
   type: "Silence"
-  bottom: "data_dim"
   bottom: "label"
 }
