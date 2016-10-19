@@ -17,7 +17,7 @@ layer {
   image_data_param {
     root_folder: "human/data"
     source: "human/list/trainval.txt"
-    batch_size: 12
+    batch_size: 41
     shuffle: true
     label_type: PIXEL
   }
@@ -42,16 +42,28 @@ layer {
     num_joint:9
   }
 }
-
+layer {
+  name: "reshape_pose"
+  type: "Reshape"
+  bottom: "pose_vector"
+  top: "reshape_pose"
+  reshape_param {
+    shape: {
+      dim: 0
+      dim: -1
+      dim: 1
+      dim: 1
+    }
+  }
+}
 layer {
   name: "create_gan_label"
   type: "CreateGan"
-  bottom: "pose_vector"
+  bottom: "reshape_pose"
   top: "create_gan_label"
   create_gan_param {
     gan_label: 1
   }
-  propagate_down: false
 }
 layer {
   name: "silence"
@@ -65,40 +77,8 @@ layer {
 layer {
   name: "fc1_discriminator"
   type: "InnerProduct"
-  bottom: "pose_vector"
+  bottom: "reshape_pose"
   top: "fc1_discriminator"
-  param {
-    lr_mult: 1
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 2
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 64
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0.1
-    }
-  }
-}
-layer {
-  name: "relu1_discriminator"
-  type: "ReLU"
-  bottom: "fc1_discriminator"
-  top: "fc1_discriminator"
-}
-
-layer {
-  name: "fc2_discriminator"
-  type: "InnerProduct"
-  bottom: "fc1_discriminator"
-  top: "fc2_discriminator"
   param {
     lr_mult: 1
     decay_mult: 1
@@ -115,26 +95,24 @@ layer {
     }
     bias_filler {
       type: "constant"
-      value: 0
+      value: 0.1
     }
   }
 }
 
 layer {
-  name: "accuracy_gan"
+  name: "accuracy"
   type: "Accuracy"
-  bottom: "fc2_discriminator"
+  bottom: "fc1_discriminator"
   bottom: "create_gan_label"
-  top: "accuracy_gan"
+  top: "accuracy"
 }
 
 layer {
-  name: "loss_gan"
+  name: "loss"
   type: "SoftmaxWithLoss"
-  bottom: "fc2_discriminator"
+  bottom: "fc1_discriminator"
   bottom: "create_gan_label"
-  top: "loss_gan"
-  propagate_down: true
-  propagate_down: false
+  top: "loss"
 }
 
