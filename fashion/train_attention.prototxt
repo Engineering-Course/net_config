@@ -26,10 +26,12 @@ layer {
   top: "label"
   image_data_param {
     root_folder: "${DATA_ROOT}"
-    source: "${EXP}/list/${TRAIN_SET}.txt"
+    source: "${EXP}/list/fashion/${TRAIN_SET}.txt"
     label_type: PIXEL
     batch_size: 10
     shuffle: true
+    new_height: 150
+    new_width: 100
   }
   transform_param {
     mean_value: 104.008

@@ -6,46 +6,31 @@
 # from 2 to 3 while retaining stride = 2
 # which makes it easier to exactly align responses at different layers.
 #
-# For alignment to work, we set (we choose 32x so as to be able to evaluate
-# the model for all different subsampling sizes):
-# (1) input dimension equal to
-# $n = 32 * k - 31$, e.g., 321 (for k = 11)
-# Dimension after pooling w. subsampling:
-# (16 * k - 15); (8 * k - 7); (4 * k - 3); (2 * k - 1); (k).
-# For k = 11, these translate to
-#           161;          81;          41;          21;  11
-# 
+name: "fashion"
 
-name: "${NET_ID}"
-
-### load data ###
 layer {
   name: "data"
   type: "ImageSegData"
   top: "data"
   top: "label"
   image_data_param {
-    root_folder: "${DATA_ROOT}"
-    source: "${EXP}/list/fashion/${TRAIN_SET}.txt"
-    label_type: PIXEL
-    batch_size: 10
-    shuffle: true
+    root_folder: "human/data/fashion"
+    source: "human/list/fashion/val.txt"
+    batch_size: 1
+    label_type: NONE
+    new_height: 385 
+    new_width: 257
+#    label_type: PIXEL
   }
   transform_param {
     mean_value: 104.008
     mean_value: 116.669
     mean_value: 122.675
-    crop_size: 321
-    scale_factors: 0.6
-    scale_factors: 0.8
-    scale_factors: 1
-    scale_factors: 1.2
-    scale_factors: 1.4
-    mirror: true
+    #crop_size: 513
+    mirror: false
   }
-  include: { phase: TRAIN }
+  include: { phase: TEST }
 }
-
 ### shrink data ###
 layer {
   bottom: "data"
@@ -1560,8 +1545,8 @@ layer {
 ############### classifier for resolution 1###################
 layer {
   bottom: "fc7"
-  top: "fc8_${EXP}"
-  name: "fc8_${EXP}"
+  top: "fc8_human"
+  name: "fc8_human"
   type: "Convolution"
   param {
     name: "fc8_w"
@@ -1574,52 +1559,16 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: ${NUM_LABELS}
+    num_output: 18
     kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
-layer {
-  bottom: "fc7"
-  top: "fc8_${EXP}_second_order"
-  name: "fc8_${EXP}_second_order"
-  type: "Convolution"
-  param {
-    name: "fc8_w_second_order"
-    lr_mult: 10
-    decay_mult: 1
-  }
-  param {
-    name: "fc8_b_second_order"
-    lr_mult: 20
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 6
-    kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
   }
 }
 
 ############### classifier for resolution 1/2 ###################
 layer {
   bottom: "fc7_res05"
-  top: "fc8_${EXP}_res05"
-  name: "fc8_${EXP}_res05"
+  top: "fc8_human_res05"
+  name: "fc8_human_res05"
   type: "Convolution"
   param {
     name: "fc8_w"
@@ -1632,52 +1581,16 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: ${NUM_LABELS}
+    num_output: 18
     kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
-layer {
-  bottom: "fc7_res05"
-  top: "fc8_${EXP}_res05_second_order"
-  name: "fc8_${EXP}_res05_second_order"
-  type: "Convolution"
-  param {
-    name: "fc8_w_second_order"
-    lr_mult: 10
-    decay_mult: 1
-  }
-  param {
-    name: "fc8_b_second_order"
-    lr_mult: 20
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 6
-    kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
   }
 }
 
 ############### classifier for resolution 3/4 ###################
 layer {
   bottom: "fc7_res075"
-  top: "fc8_${EXP}_res075"
-  name: "fc8_${EXP}_res075"
+  top: "fc8_human_res075"
+  name: "fc8_human_res075"
   type: "Convolution"
   param {
     name: "fc8_w"
@@ -1690,44 +1603,8 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: ${NUM_LABELS}
+    num_output: 18
     kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
-layer {
-  bottom: "fc7_res075"
-  top: "fc8_${EXP}_res075_second_order"
-  name: "fc8_${EXP}_res075_second_order"
-  type: "Convolution"
-  param {
-    name: "fc8_w_second_order"
-    lr_mult: 10
-    decay_mult: 1
-  }
-  param {
-    name: "fc8_b_second_order"
-    lr_mult: 20
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 6
-    kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
   }
 }
 
@@ -1756,9 +1633,9 @@ layer {
   }
 }
 layer {
-  bottom: "fc8_${EXP}_res05"
-  top: "fc8_${EXP}_res05_interp"
-  name: "fc8_${EXP}_res05_interp"
+  bottom: "fc8_human_res05"
+  top: "fc8_human_res05_interp"
+  name: "fc8_human_res05_interp"
   type: "Interp"
   interp_param {
     zoom_factor: 2
@@ -1767,33 +1644,9 @@ layer {
   }
 }
 layer {
-  bottom: "fc8_${EXP}_res05_second_order"
-  top: "fc8_${EXP}_res05_interp_second_order"
-  name: "fc8_${EXP}_res05_interp_second_order"
-  type: "Interp"
-  interp_param {
-    zoom_factor: 2
-    pad_beg: 0
-    pad_end: 0
-  }
-}
-
-layer {
-  bottom: "fc8_${EXP}_res075"
-  top: "fc8_${EXP}_res075_interp"
-  name: "fc8_${EXP}_res075_interp"
-  type: "Interp"
-  interp_param {
-    zoom_factor: 4
-    shrink_factor: 3    
-    pad_beg: 0
-    pad_end: 0
-  }
-}
-layer {
-  bottom: "fc8_${EXP}_res075_second_order"
-  top: "fc8_${EXP}_res075_interp_second_order"
-  name: "fc8_${EXP}_res075_interp_second_order"
+  bottom: "fc8_human_res075"
+  top: "fc8_human_res075_interp"
+  name: "fc8_human_res075_interp"
   type: "Interp"
   interp_param {
     zoom_factor: 4
@@ -1817,20 +1670,11 @@ layer {
 }
 
 ### attention model
-# change lr_mult to be 1, since it has been pretrained on coco
 layer {
   bottom: "fc7_concat"
   top: "att_conv1"
   name: "att_conv1"
   type: "Convolution"
-  param {
-    lr_mult: 1
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 2
-    decay_mult: 0
-  }
   convolution_param {
     num_output: 512
     kernel_size: 3
@@ -1858,14 +1702,6 @@ layer {
   top: "att_fc"
   name: "att_fc"
   type: "Convolution"
-  param {
-    lr_mult: 1
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 2
-    decay_mult: 0
-  }
   convolution_param {
     num_output: 3
     kernel_size: 1
@@ -1895,47 +1731,26 @@ layer {
 
 ############### scale features #############
 layer {
-  bottom: "fc8_${EXP}"
+  bottom: "fc8_human"
   bottom: "attention1"
   top: "fc8_product"
   name: "fc8_product"
   type: "SpatialProduct"
 }
-layer {
-  bottom: "fc8_${EXP}_second_order"
-  bottom: "attention1"
-  top: "fc8_product_second_order"
-  name: "fc8_product_second_order"
-  type: "SpatialProduct"
-}
 
 layer {
-  bottom: "fc8_${EXP}_res075_interp"
+  bottom: "fc8_human_res075_interp"
   bottom: "attention2"
   top: "fc8_res075_product" 
   name: "fc8_res075_product"
   type: "SpatialProduct"
 }
-layer {
-  bottom: "fc8_${EXP}_res075_interp_second_order"
-  bottom: "attention2"
-  top: "fc8_res075_product_second_order" 
-  name: "fc8_res075_product_second_order"
-  type: "SpatialProduct"
-}
 
 layer {
-  bottom: "fc8_${EXP}_res05_interp"
+  bottom: "fc8_human_res05_interp"
   bottom: "attention3"
   top: "fc8_res05_product" 
   name: "fc8_res05_product"
-  type: "SpatialProduct"
-}
-layer {
-  bottom: "fc8_${EXP}_res05_interp_second_order"
-  bottom: "attention3"
-  top: "fc8_res05_product_second_order" 
-  name: "fc8_res05_product_second_order"
   type: "SpatialProduct"
 }
 
@@ -1951,146 +1766,63 @@ layer {
     operation: SUM
   }
 }
+############### upsampling ################
+#layer {
+#  bottom: "label"
+#  top: "label_shrink8"
+#  name: "label_shrink8"
+#  type: "Interp"
+#  interp_param {
+#    shrink_factor: 8
+#    pad_beg: 0
+#    pad_end: 0
+#  }
+#}
 layer {
-  bottom: "fc8_product_second_order"
-  bottom: "fc8_res075_product_second_order"
-  bottom: "fc8_res05_product_second_order"
-  top: "fc8_fusion_second_order"
-  name: "fc8_fusion_second_order"
-  type: "Eltwise"
-  eltwise_param {
-    operation: SUM
-  }
-}
-
-############### shrink label ################
-layer {
-  bottom: "label"
-  top: "label_shrink8"
-  name: "label_shrink8"
+  bottom: "fc8_fusion"
+  top: "fc8_interp"
+  name: "fc8_interp"
   type: "Interp"
   interp_param {
-    shrink_factor: 8
-    pad_beg: 0
-    pad_end: 0
-  }
-}
-layer {
-  name: "label_pose_1st"
-  type: "PoseEvaluate"
-  bottom: "label_shrink8"
-  top: "label_pose_1st"
-  pose_evaluate_param {
-    num_joint:9
-  }
-}
-layer {
-  name: "label_order2"
-  type: "MergeLabel"
-  bottom: "label_shrink8"
-  top: "label_order2"
-  merge_label_param {
-    order: 2
-  }
-}
-layer {
-  name: "label_pose_2nd"
-  type: "PoseEvaluate"
-  bottom: "label_order2"
-  top: "label_pose_2nd"
-  pose_evaluate_param {
-    num_joint:3
-  }
-}
-############### compute loss first order#################
-layer {
-  name: "fc8_mask_1st"
-  type: "MaskCreate"
-  bottom: "fc8_fusion"
-  top: "fc8_mask_1st"
-  mask_create_param {
-    num_cls: 20
-  }
-}
-layer {
-  name: "fc8_pose_1st"
-  type: "PoseEvaluate"
-  bottom: "fc8_mask_1st"
-  top: "fc8_pose_1st"
-  pose_evaluate_param {
-    num_joint: 9
+    zoom_factor: 8
   }
 }
 
-############### compute loss second order#################
 layer {
-  name: "merge_1st"
-  type: "MergeFirst"
-  bottom: "fc8_fusion"
-  top: "merge_1st"
-  merge_first_param {
-    num_labels: 6
-  }
-}
-layer {
-  name: "output_2nd"
-  type: "Eltwise"
-  bottom: "merge_1st"
-  bottom: "fc8_fusion_second_order"
-  top: "output_2nd"
-  eltwise_param {
-    operation: SUM
-  }
-}
-layer {
-  name: "fc8_mask_2nd"
+  bottom: "fc8_interp"
+  top: "fc8_mask"
+  name: "fc8_mask"
   type: "MaskCreate"
-  bottom: "output_2nd"
-  top: "fc8_mask_2nd"
-  mask_create_param {
-    num_cls: 6
+  mask_create_param{
+    num_cls: 18
   }
 }
+
 layer {
-  name: "fc8_pose_2nd"
-  type: "PoseEvaluate"
-  bottom: "fc8_mask_2nd"
-  top: "fc8_pose_2nd"
-  pose_evaluate_param {
-    num_joint: 3
+  name: "fc8_mat"
+  type: "MatWrite"
+  bottom: "fc8_mask"
+  mat_write_param {
+    prefix: "human/features/fashion/val/fc8_mask/"
+    source: "human/list/fashion/val_id.txt"
+    strip: 0
+    period: 1
   }
+  include: { phase: TEST }
 }
+#layer {
+#  name: "accuracy"
+#  type: "SegAccuracy"
+#  bottom: "fc8_fusion"
+#  bottom: "label_shrink8"
+#  top: "accuracy"
+#  seg_accuracy_param {
+#    ignore_label: 255
+#  } 
+#}
+#
 layer {
-  name: "fc8_pose_2nd_error"
-  type: "PoseError"
-  bottom: "fc8_pose_2nd"
-  bottom: "label_pose_2nd"
-  bottom: "fc8_pose_1st"
-  bottom: "label_pose_1st"
-  top: "fc8_pose_2nd_error"
-  pose_error_param {
-    num_joint: 3
-    error_order: 2
-  }
-}
-layer {
-  name: "loss"
-  type: "SoftmaxWithLoss"
-  bottom: "output_2nd"
-  bottom: "label_order2"
-  bottom: "fc8_pose_2nd_error"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy"
-  type: "SegAccuracy"
-  bottom: "output_2nd"
-  bottom: "label_order2"
-  top: "accuracy"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
+  name: "silence"
+  type: "Silence"
+  bottom: "label"
 }
