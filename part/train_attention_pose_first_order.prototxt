@@ -26,7 +26,7 @@ layer {
   top: "label"
   image_data_param {
     root_folder: "${DATA_ROOT}"
-    source: "${EXP}/list/part/${TRAIN_SET}.txt"
+    source: "${EXP}/list/${TRAIN_SET}.txt"
     label_type: PIXEL
     batch_size: 10
     shuffle: true
@@ -1671,7 +1671,6 @@ layer {
     pad_end: 0
   }
 }
-
 layer {
   bottom: "fc8_${EXP}_res05"
   top: "fc8_${EXP}_res05_interp"
@@ -1683,6 +1682,7 @@ layer {
     pad_end: 0
   }
 }
+
 layer {
   bottom: "fc8_${EXP}_res075"
   top: "fc8_${EXP}_res075_interp"
@@ -1802,7 +1802,6 @@ layer {
   name: "fc8_res075_product"
   type: "SpatialProduct"
 }
-
 layer {
   bottom: "fc8_${EXP}_res05_interp"
   bottom: "attention3"
@@ -1823,6 +1822,7 @@ layer {
     operation: SUM
   }
 }
+
 ############### shrink label ################
 layer {
   bottom: "label"
@@ -1835,12 +1835,51 @@ layer {
     pad_end: 0
   }
 }
-############### compute loss #################
+layer {
+  name: "label_pose_1st"
+  type: "PoseEvaluate"
+  bottom: "label_shrink8"
+  top: "label_pose_1st"
+  pose_evaluate_param {
+    num_joint:6
+  }
+}
+############### compute loss first order#################
+layer {
+  name: "fc8_mask_1st"
+  type: "MaskCreate"
+  bottom: "fc8_fusion"
+  top: "fc8_mask_1st"
+  mask_create_param {
+    num_cls: 7
+  }
+}
+layer {
+  name: "fc8_pose_1st"
+  type: "PoseEvaluate"
+  bottom: "fc8_mask_1st"
+  top: "fc8_pose_1st"
+  pose_evaluate_param {
+    num_joint: 6
+  }
+}
+layer {
+  name: "fc8_pose_1st_error"
+  type: "PoseError"
+  bottom: "fc8_pose_1st"
+  bottom: "label_pose_1st"
+  top: "fc8_pose_1st_error"
+  pose_error_param {
+    num_joint: 6
+    error_order: 1
+  }
+}
 layer {
   name: "loss"
   type: "SoftmaxWithLoss"
   bottom: "fc8_fusion"
   bottom: "label_shrink8"
+  bottom: "fc8_pose_1st_error"
   loss_param {
     ignore_label: 255
   }
@@ -1852,86 +1891,6 @@ layer {
   bottom: "fc8_fusion"
   bottom: "label_shrink8"
   top: "accuracy"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-############## add supervsion to fc8's directly ##########
-## resolution 1
-layer {
-  name: "loss_res1"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}"
-  bottom: "label_shrink8"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_res1"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}"
-  bottom: "label_shrink8"
-  top: "accuracy_res1"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-## resolution 3/4
-# interp layer does not support 3/4 scale for ground truth
-# instead we interpolate score map
-layer {
-  name: "loss_res075"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}_res075_interp"
-  bottom: "label_shrink8"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_res075"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}_res075_interp"
-  bottom: "label_shrink8"
-  top: "accuracy_res075"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-## resolution 1/2
-layer {
-  bottom: "label"
-  top: "label_shrink16"
-  name: "label_shrink16"
-  type: "Interp"
-  interp_param {
-    shrink_factor: 16
-    pad_beg: 0
-    pad_end: 0
-  }
-}
-layer {
-  name: "loss_res05"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}_res05"
-  bottom: "label_shrink16"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_res05"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}_res05"
-  bottom: "label_shrink16"
-  top: "accuracy_res05"
   seg_accuracy_param {
     ignore_label: 255
   } 

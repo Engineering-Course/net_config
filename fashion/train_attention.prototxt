@@ -43,7 +43,7 @@ layer {
     scale_factors: 1
     scale_factors: 1.2
     scale_factors: 1.4
-    mirror: true
+    #mirror: true
   }
   include: { phase: TRAIN }
 }

@@ -10,7 +10,7 @@ layer {
     root_folder: "human/data"
     source: "human/list/train.txt"
     label_type: PIXEL
-    batch_size: 12
+    batch_size: 20
     shuffle: true
   }
   transform_param {
@@ -1892,7 +1892,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 64
+    num_output: 32
     weight_filler {
       type: "gaussian"
       std: 0.01

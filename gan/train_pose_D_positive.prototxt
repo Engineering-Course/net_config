@@ -16,8 +16,8 @@ layer {
   }
   image_data_param {
     root_folder: "human/data"
-    source: "human/list/trainval.txt"
-    batch_size: 12
+    source: "human/list/train.txt"
+    batch_size: 20
     shuffle: true
     label_type: PIXEL
   }
@@ -76,7 +76,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 64
+    num_output: 32
     weight_filler {
       type: "gaussian"
       std: 0.01
