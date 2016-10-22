@@ -26,7 +26,7 @@ layer {
   top: "label"
   image_data_param {
     root_folder: "${DATA_ROOT}"
-    source: "${EXP}/list/part/${TRAIN_SET}.txt"
+    source: "${EXP}/list/${TRAIN_SET}.txt"
     label_type: PIXEL
     batch_size: 10
     shuffle: true
@@ -1602,7 +1602,7 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: 5
+    num_output: 6
     kernel_size: 1
     weight_filler {
       type: "gaussian"
@@ -1660,7 +1660,7 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: 5
+    num_output: 6
     kernel_size: 1
     weight_filler {
       type: "gaussian"
@@ -1718,7 +1718,7 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: 5
+    num_output: 6
     kernel_size: 1
     weight_filler {
       type: "gaussian"
@@ -1985,15 +1985,29 @@ layer {
     order: 2
   }
 }
+
+############### compute loss first order#################
 layer {
-  name: "label_pose_2nd"
-  type: "PoseEvaluate"
-  bottom: "label_order2"
-  top: "label_pose_2nd"
-  pose_evaluate_param {
-    num_joint:4
+  name: "loss_first"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_fusion"
+  bottom: "label_shrink8"
+  top: "loss_first"
+  loss_param {
+    ignore_label: 255
   }
 }
+layer {
+  name: "accuracy_first"
+  type: "SegAccuracy"
+  bottom: "fc8_fusion"
+  bottom: "label_shrink8"
+  top: "accuracy_first"
+  seg_accuracy_param {
+    ignore_label: 255
+  }
+}
+
 ############### compute loss second order#################
 layer {
   name: "merge_1st"
@@ -2001,7 +2015,7 @@ layer {
   bottom: "fc8_fusion"
   top: "merge_1st"
   merge_first_param {
-    num_labels: 5
+    num_labels: 6
   }
 }
 layer {
@@ -2014,52 +2028,24 @@ layer {
     operation: SUM
   }
 }
+
 layer {
-  name: "fc8_mask_2nd"
-  type: "MaskCreate"
-  bottom: "output_2nd"
-  top: "fc8_mask_2nd"
-  mask_create_param {
-    num_cls: 5
-  }
-}
-layer {
-  name: "fc8_pose_2nd"
-  type: "PoseEvaluate"
-  bottom: "fc8_mask_2nd"
-  top: "fc8_pose_2nd"
-  pose_evaluate_param {
-    num_joint: 4
-  }
-}
-layer {
-  name: "fc8_pose_2nd_error"
-  type: "PoseError"
-  bottom: "fc8_pose_2nd"
-  bottom: "label_pose_2nd"
-  top: "fc8_pose_2nd_error"
-  pose_error_param {
-    num_joint: 4
-    error_order: 2
-  }
-}
-layer {
-  name: "loss"
+  name: "loss_second"
   type: "SoftmaxWithLoss"
   bottom: "output_2nd"
   bottom: "label_order2"
-  bottom: "fc8_pose_2nd_error"
+  top: "loss_second"
   loss_param {
     ignore_label: 255
   }
   include: { phase: TRAIN }
 }
 layer {
-  name: "accuracy"
+  name: "accuracy_second"
   type: "SegAccuracy"
   bottom: "output_2nd"
   bottom: "label_order2"
-  top: "accuracy"
+  top: "accuracy_second"
   seg_accuracy_param {
     ignore_label: 255
   } 
