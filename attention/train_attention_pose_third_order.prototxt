@@ -2180,7 +2180,7 @@ layer {
   type: "MergeSecond"
   bottom: "output_2nd"
   top: "merge_2nd"
-  merge_first_param {
+  merge_second_param {
     num_labels: 4
   }
 }

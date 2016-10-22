@@ -18,15 +18,13 @@ layer {
     source: "human/list/val.txt"
     batch_size: 1
     label_type: NONE
-    new_height: 385
-    new_width: 257
 #    label_type: PIXEL
   }
   transform_param {
     mean_value: 104.008
     mean_value: 116.669
     mean_value: 122.675
-    #crop_size: 513
+    crop_size: 513
     mirror: false
   }
   include: { phase: TEST }

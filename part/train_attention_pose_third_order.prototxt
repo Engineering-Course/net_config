@@ -26,7 +26,7 @@ layer {
   top: "label"
   image_data_param {
     root_folder: "${DATA_ROOT}"
-    source: "${EXP}/list/${TRAIN_SET}.txt"
+    source: "${EXP}/list/part/${TRAIN_SET}.txt"
     label_type: PIXEL
     batch_size: 10
     shuffle: true
@@ -2162,7 +2162,7 @@ layer {
   type: "MergeSecond"
   bottom: "output_2nd"
   top: "merge_2nd"
-  merge_first_param {
+  merge_second_param {
     num_labels: 3
   }
 }

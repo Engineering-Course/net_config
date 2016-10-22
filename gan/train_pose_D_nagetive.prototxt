@@ -10,7 +10,7 @@ layer {
     root_folder: "human/data"
     source: "human/list/train.txt"
     label_type: PIXEL
-    batch_size: 20
+    batch_size: 5
     shuffle: true
   }
   transform_param {
