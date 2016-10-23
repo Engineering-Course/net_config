@@ -589,6 +589,17 @@ layer {
   }
 }
 ## original resolution
+#layer {
+#  bottom: "label"
+#  top: "label_shrink"
+#  name: "label_shrink"
+#  type: "Interp"
+#  interp_param {
+#    shrink_factor: 8
+#    pad_beg: 0
+#    pad_end: 0
+#  }
+#}
 layer {
   name: "fc8_interp"
   type: "Interp"
@@ -621,9 +632,19 @@ layer {
     period: 1
   }
 }
+#layer {
+#  name: "accuracy"
+#  type: "SegAccuracy"
+#  bottom: "fc8_human"
+#  bottom: "label_shrink"
+#  top: "accuracy"
+#  seg_accuracy_param {
+#    ignore_label: 255
+#  }
+#}
 layer {
   name: "silence"
   type: "Silence"
-  bottom: "label"
   bottom: "data_dim"
+  bottom: "label"
 }
