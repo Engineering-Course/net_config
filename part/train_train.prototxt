@@ -1586,6 +1586,34 @@ layer {
     }
   }
 }
+layer {
+  bottom: "fc7"
+  top: "fc8_human_second_order"
+  name: "fc8_human_second_order"
+  type: "Convolution"
+  param {
+    name: "fc8_w_second_order"
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    name: "fc8_b_second_order"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 5
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
 
 ############### classifier for resolution 1/2 ###################
 layer {
@@ -1616,6 +1644,34 @@ layer {
     }
   }
 }
+layer {
+  bottom: "fc7_res05"
+  top: "fc8_human_res05_second_order"
+  name: "fc8_human_res05_second_order"
+  type: "Convolution"
+  param {
+    name: "fc8_w_second_order"
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    name: "fc8_b_second_order"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 5
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
 
 ############### classifier for resolution 3/4 ###################
 layer {
@@ -1635,6 +1691,34 @@ layer {
   }
   convolution_param {
     num_output: 7
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  bottom: "fc7_res075"
+  top: "fc8_human_res075_second_order"
+  name: "fc8_human_res075_second_order"
+  type: "Convolution"
+  param {
+    name: "fc8_w_second_order"
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    name: "fc8_b_second_order"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 5
     kernel_size: 1
     weight_filler {
       type: "gaussian"
@@ -1682,11 +1766,34 @@ layer {
     pad_end: 0
   }
 }
+layer {
+  bottom: "fc8_human_res05_second_order"
+  top: "fc8_human_res05_interp_second_order"
+  name: "fc8_human_res05_interp_second_order"
+  type: "Interp"
+  interp_param {
+    zoom_factor: 2
+    pad_beg: 0
+    pad_end: 0
+  }
+}
 
 layer {
   bottom: "fc8_human_res075"
   top: "fc8_human_res075_interp"
   name: "fc8_human_res075_interp"
+  type: "Interp"
+  interp_param {
+    zoom_factor: 4
+    shrink_factor: 3    
+    pad_beg: 0
+    pad_end: 0
+  }
+}
+layer {
+  bottom: "fc8_human_res075_second_order"
+  top: "fc8_human_res075_interp_second_order"
+  name: "fc8_human_res075_interp_second_order"
   type: "Interp"
   interp_param {
     zoom_factor: 4
@@ -1794,6 +1901,13 @@ layer {
   name: "fc8_product"
   type: "SpatialProduct"
 }
+layer {
+  bottom: "fc8_human_second_order"
+  bottom: "attention1"
+  top: "fc8_product_second_order"
+  name: "fc8_product_second_order"
+  type: "SpatialProduct"
+}
 
 layer {
   bottom: "fc8_human_res075_interp"
@@ -1803,10 +1917,25 @@ layer {
   type: "SpatialProduct"
 }
 layer {
+  bottom: "fc8_human_res075_interp_second_order"
+  bottom: "attention2"
+  top: "fc8_res075_product_second_order" 
+  name: "fc8_res075_product_second_order"
+  type: "SpatialProduct"
+}
+
+layer {
   bottom: "fc8_human_res05_interp"
   bottom: "attention3"
   top: "fc8_res05_product" 
   name: "fc8_res05_product"
+  type: "SpatialProduct"
+}
+layer {
+  bottom: "fc8_human_res05_interp_second_order"
+  bottom: "attention3"
+  top: "fc8_res05_product_second_order" 
+  name: "fc8_res05_product_second_order"
   type: "SpatialProduct"
 }
 
@@ -1817,6 +1946,17 @@ layer {
   bottom: "fc8_res05_product"
   top: "fc8_fusion"
   name: "fc8_fusion"
+  type: "Eltwise"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  bottom: "fc8_product_second_order"
+  bottom: "fc8_res075_product_second_order"
+  bottom: "fc8_res05_product_second_order"
+  top: "fc8_fusion_second_order"
+  name: "fc8_fusion_second_order"
   type: "Eltwise"
   eltwise_param {
     operation: SUM
@@ -1835,62 +1975,77 @@ layer {
     pad_end: 0
   }
 }
+
 layer {
-  name: "label_pose_1st"
-  type: "PoseEvaluate"
+  name: "label_order2"
+  type: "MergeLabel"
   bottom: "label_shrink8"
-  top: "label_pose_1st"
-  pose_evaluate_param {
-    num_joint:6
+  top: "label_order2"
+  merge_label_param {
+    order: 2
   }
 }
+
 ############### compute loss first order#################
 layer {
-  name: "fc8_mask_1st"
-  type: "MaskCreate"
-  bottom: "fc8_fusion"
-  top: "fc8_mask_1st"
-  mask_create_param {
-    num_cls: 7
-  }
-}
-layer {
-  name: "fc8_pose_1st"
-  type: "PoseEvaluate"
-  bottom: "fc8_mask_1st"
-  top: "fc8_pose_1st"
-  pose_evaluate_param {
-    num_joint: 6
-  }
-}
-layer {
-  name: "fc8_pose_1st_error"
-  type: "PoseError"
-  bottom: "fc8_pose_1st"
-  bottom: "label_pose_1st"
-  top: "fc8_pose_1st_error"
-  pose_error_param {
-    num_joint: 6
-    error_order: 1
-  }
-}
-layer {
-  name: "loss"
+  name: "loss_first"
   type: "SoftmaxWithLoss"
   bottom: "fc8_fusion"
   bottom: "label_shrink8"
-  bottom: "fc8_pose_1st_error"
+  top: "loss_first"
+  loss_param {
+    ignore_label: 255
+  }
+}
+layer {
+  name: "accuracy_first"
+  type: "SegAccuracy"
+  bottom: "fc8_fusion"
+  bottom: "label_shrink8"
+  top: "accuracy_first"
+  seg_accuracy_param {
+    ignore_label: 255
+  }
+}
+
+############### compute loss second order#################
+layer {
+  name: "merge_1st"
+  type: "MergeFirst"
+  bottom: "fc8_fusion"
+  top: "merge_1st"
+  merge_first_param {
+    num_labels: 5
+  }
+}
+layer {
+  name: "output_2nd"
+  type: "Eltwise"
+  bottom: "merge_1st"
+  bottom: "fc8_fusion_second_order"
+  top: "output_2nd"
+  eltwise_param {
+    operation: SUM
+  }
+}
+
+layer {
+  name: "loss_second"
+  type: "SoftmaxWithLoss"
+  bottom: "output_2nd"
+  bottom: "label_order2"
+  top: "loss_second"
   loss_param {
     ignore_label: 255
   }
   include: { phase: TRAIN }
 }
 layer {
-  name: "accuracy"
+  name: "accuracy_second"
   type: "SegAccuracy"
-  bottom: "fc8_fusion"
-  bottom: "label_shrink8"
-  top: "accuracy"
+  bottom: "output_2nd"
+  bottom: "label_order2"
+  top: "accuracy_second"
   seg_accuracy_param {
     ignore_label: 255
   } 

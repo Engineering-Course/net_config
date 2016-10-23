@@ -1992,6 +1992,7 @@ layer {
   type: "SoftmaxWithLoss"
   bottom: "fc8_fusion"
   bottom: "label_shrink8"
+  top: "loss_first"
   loss_param {
     ignore_label: 255
   }
@@ -2002,7 +2003,7 @@ layer {
   bottom: "fc8_fusion"
   bottom: "label_shrink8"
   top: "accuracy_first"
-  seg_accuracy {
+  seg_accuracy_param {
     ignore_label: 255
   }
 }
@@ -2033,6 +2034,7 @@ layer {
   type: "SoftmaxWithLoss"
   bottom: "output_2nd"
   bottom: "label_order2"
+  top: "loss_second"
   loss_param {
     ignore_label: 255
   }
