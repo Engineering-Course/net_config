@@ -37,7 +37,7 @@ layer {
   image_data_param {
     root_folder: "${DATA_ROOT}"
     source: "${EXP}/list/${TRAIN_SET}.txt"
-    batch_size: 10
+    batch_size: 16
     shuffle: true
     label_type: PIXEL
   }
@@ -529,6 +529,32 @@ layer {
     }
   }
 }
+#layer {
+#  name: "fc8_${EXP}_1_second_order"
+#  type: "Convolution"
+#  bottom: "fc7_1"
+#  top: "fc8_${EXP}_1_second_order"
+#  param {
+#    lr_mult: 10
+#    decay_mult: 1
+#  }
+#  param {
+#    lr_mult: 20
+#    decay_mult: 0
+#  }
+#  convolution_param {
+#    num_output: 6
+#    kernel_size: 1
+#    weight_filler {
+#      type: "gaussian"
+#      std: 0.01
+#    }
+#    bias_filler {
+#      type: "constant"
+#      value: 0
+#    }
+#  }
+#}
 
 ### hole = 12
 layer {
@@ -625,6 +651,32 @@ layer {
     }
   }
 }
+#layer {
+#  name: "fc8_${EXP}_2_second_order"
+#  type: "Convolution"
+#  bottom: "fc7_2"
+#  top: "fc8_${EXP}_2_second_order"
+#  param {
+#    lr_mult: 10
+#    decay_mult: 1
+#  }
+#  param {
+#    lr_mult: 20
+#    decay_mult: 0
+#  }
+#  convolution_param {
+#    num_output: 6
+#    kernel_size: 1
+#    weight_filler {
+#      type: "gaussian"
+#      std: 0.01
+#    }
+#    bias_filler {
+#      type: "constant"
+#      value: 0
+#    }
+#  }
+#}
 
 ### hole = 18
 layer {
@@ -721,6 +773,32 @@ layer {
     }
   }
 }
+#layer {
+#  name: "fc8_${EXP}_3_second_order"
+#  type: "Convolution"
+#  bottom: "fc7_3"
+#  top: "fc8_${EXP}_3_second_order"
+#  param {
+#    lr_mult: 10
+#    decay_mult: 1
+#  }
+#  param {
+#    lr_mult: 20
+#    decay_mult: 0
+#  }
+#  convolution_param {
+#    num_output: 6
+#    kernel_size: 1
+#    weight_filler {
+#      type: "gaussian"
+#      std: 0.01
+#    }
+#    bias_filler {
+#      type: "constant"
+#      value: 0
+#    }
+#  }
+#}
 
 ### hole = 24
 layer {
@@ -817,8 +895,34 @@ layer {
     }
   }
 }
+#layer {
+#  name: "fc8_${EXP}_4_second_order"
+#  type: "Convolution"
+#  bottom: "fc7_4"
+#  top: "fc8_${EXP}_4_second_order"
+#  param {
+#    lr_mult: 10
+#    decay_mult: 1
+#  }
+#  param {
+#    lr_mult: 20
+#    decay_mult: 0
+#  }
+#  convolution_param {
+#    num_output: 6
+#    kernel_size: 1
+#    weight_filler {
+#      type: "gaussian"
+#      std: 0.01
+#    }
+#    bias_filler {
+#      type: "constant"
+#      value: 0
+#    }
+#  }
+#}
 
-### SUM the four branches
+### SUM the four branches of first order
 layer {
   bottom: "fc8_${EXP}_1"
   bottom: "fc8_${EXP}_2"
@@ -832,7 +936,21 @@ layer {
   }
 }
 
-#################
+### SUM the four branches of second order
+#layer {
+#  bottom: "fc8_${EXP}_1_second_order"
+#  bottom: "fc8_${EXP}_2_second_order"
+#  bottom: "fc8_${EXP}_3_second_order"
+#  bottom: "fc8_${EXP}_4_second_order"
+#  top: "fc8_${EXP}_second_order"
+#  name: "fc8_${EXP}_second_order"
+#  type: "Eltwise"
+#  eltwise_param {
+#    operation: SUM
+#  }
+#}
+
+### Merge label ##########
 layer {
   bottom: "label"
   top: "label_shrink"
@@ -844,11 +962,25 @@ layer {
     pad_end: 0
   }
 }
+
 layer {
-  name: "loss"
+  name: "label_order2"
+  type: "MergeLabel"
+  bottom: "label_shrink"
+  top: "label_order2"
+  merge_label_param {
+    order: 2
+  }
+}
+
+###Loss of First order ######
+
+layer {
+  name: "loss_1st_order"
   type: "SoftmaxWithLoss"
   bottom: "fc8_${EXP}"
   bottom: "label_shrink"
+  top: "loss_1st_order"
   include {
     phase: TRAIN
   }
@@ -857,11 +989,59 @@ layer {
   }
 }
 layer {
-  name: "accuracy"
+  name: "accuracy_1st_order"
   type: "SegAccuracy"
   bottom: "fc8_${EXP}"
   bottom: "label_shrink"
-  top: "accuracy"
+  top: "accuracy_1st_order"
+  seg_accuracy_param {
+    ignore_label: 255
+  }
+}
+
+
+### Loss of Second order ###
+layer {
+  name: "merge_1st"
+  type: "MergeFirst"
+  bottom: "fc8_${EXP}"
+  top: "merge_1st"
+  merge_first_param {
+    num_labels: 6
+  }
+}
+#layer {
+#  name: "output_2nd"
+#  type: "Eltwise"
+#  bottom: "merge_1st"
+#  bottom: "fc8_${EXP}_second_order"
+#  top: "output_2nd"
+#  eltwise_param {
+#    operation: SUM
+#  }
+#}
+
+layer {
+  name: "loss_2nd_order"
+  type: "SoftmaxWithLoss"
+  #bottom: "output_2nd"
+  bottom: "merge_1st"
+  bottom: "label_order2"
+  top: "loss_2nd_order"
+  include {
+    phase: TRAIN
+  }
+  loss_param {
+    ignore_label: 255
+  }
+}
+layer {
+  name: "accuracy_2nd_order"
+  type: "SegAccuracy"
+  #bottom: "output_2nd"
+  bottom: "merge_1st"
+  bottom: "label_order2"
+  top: "accuracy_2nd_order"
   seg_accuracy_param {
     ignore_label: 255
   }
