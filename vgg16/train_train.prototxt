@@ -529,32 +529,32 @@ layer {
     }
   }
 }
-#layer {
-#  name: "fc8_human_1_second_order"
-#  type: "Convolution"
-#  bottom: "fc7_1"
-#  top: "fc8_human_1_second_order"
-#  param {
-#    lr_mult: 10
-#    decay_mult: 1
-#  }
-#  param {
-#    lr_mult: 20
-#    decay_mult: 0
-#  }
-#  convolution_param {
-#    num_output: 6
-#    kernel_size: 1
-#    weight_filler {
-#      type: "gaussian"
-#      std: 0.01
-#    }
-#    bias_filler {
-#      type: "constant"
-#      value: 0
-#    }
-#  }
-#}
+layer {
+  name: "fc8_human_1_second_order"
+  type: "Convolution"
+  bottom: "fc7_1"
+  top: "fc8_human_1_second_order"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 6
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
 
 ### hole = 12
 layer {
@@ -651,32 +651,32 @@ layer {
     }
   }
 }
-#layer {
-#  name: "fc8_human_2_second_order"
-#  type: "Convolution"
-#  bottom: "fc7_2"
-#  top: "fc8_human_2_second_order"
-#  param {
-#    lr_mult: 10
-#    decay_mult: 1
-#  }
-#  param {
-#    lr_mult: 20
-#    decay_mult: 0
-#  }
-#  convolution_param {
-#    num_output: 6
-#    kernel_size: 1
-#    weight_filler {
-#      type: "gaussian"
-#      std: 0.01
-#    }
-#    bias_filler {
-#      type: "constant"
-#      value: 0
-#    }
-#  }
-#}
+layer {
+  name: "fc8_human_2_second_order"
+  type: "Convolution"
+  bottom: "fc7_2"
+  top: "fc8_human_2_second_order"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 6
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
 
 ### hole = 18
 layer {
@@ -773,32 +773,32 @@ layer {
     }
   }
 }
-#layer {
-#  name: "fc8_human_3_second_order"
-#  type: "Convolution"
-#  bottom: "fc7_3"
-#  top: "fc8_human_3_second_order"
-#  param {
-#    lr_mult: 10
-#    decay_mult: 1
-#  }
-#  param {
-#    lr_mult: 20
-#    decay_mult: 0
-#  }
-#  convolution_param {
-#    num_output: 6
-#    kernel_size: 1
-#    weight_filler {
-#      type: "gaussian"
-#      std: 0.01
-#    }
-#    bias_filler {
-#      type: "constant"
-#      value: 0
-#    }
-#  }
-#}
+layer {
+  name: "fc8_human_3_second_order"
+  type: "Convolution"
+  bottom: "fc7_3"
+  top: "fc8_human_3_second_order"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 6
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
 
 ### hole = 24
 layer {
@@ -895,32 +895,32 @@ layer {
     }
   }
 }
-#layer {
-#  name: "fc8_human_4_second_order"
-#  type: "Convolution"
-#  bottom: "fc7_4"
-#  top: "fc8_human_4_second_order"
-#  param {
-#    lr_mult: 10
-#    decay_mult: 1
-#  }
-#  param {
-#    lr_mult: 20
-#    decay_mult: 0
-#  }
-#  convolution_param {
-#    num_output: 6
-#    kernel_size: 1
-#    weight_filler {
-#      type: "gaussian"
-#      std: 0.01
-#    }
-#    bias_filler {
-#      type: "constant"
-#      value: 0
-#    }
-#  }
-#}
+layer {
+  name: "fc8_human_4_second_order"
+  type: "Convolution"
+  bottom: "fc7_4"
+  top: "fc8_human_4_second_order"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 6
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
 
 ### SUM the four branches of first order
 layer {
@@ -937,18 +937,18 @@ layer {
 }
 
 ### SUM the four branches of second order
-#layer {
-#  bottom: "fc8_human_1_second_order"
-#  bottom: "fc8_human_2_second_order"
-#  bottom: "fc8_human_3_second_order"
-#  bottom: "fc8_human_4_second_order"
-#  top: "fc8_human_second_order"
-#  name: "fc8_human_second_order"
-#  type: "Eltwise"
-#  eltwise_param {
-#    operation: SUM
-#  }
-#}
+layer {
+  bottom: "fc8_human_1_second_order"
+  bottom: "fc8_human_2_second_order"
+  bottom: "fc8_human_3_second_order"
+  bottom: "fc8_human_4_second_order"
+  top: "fc8_human_second_order"
+  name: "fc8_human_second_order"
+  type: "Eltwise"
+  eltwise_param {
+    operation: SUM
+  }
+}
 
 ### Merge label ##########
 layer {
@@ -1001,15 +1001,16 @@ layer {
 
 
 ### Loss of Second order ###
-layer {
-  name: "merge_1st"
-  type: "MergeFirst"
-  bottom: "fc8_human"
-  top: "merge_1st"
-  merge_first_param {
-    num_labels: 6
-  }
-}
+#layer {
+#  name: "merge_1st"
+#  type: "MergeFirst"
+#  bottom: "fc8_human"
+#  top: "merge_1st"
+#  merge_first_param {
+#    num_labels: 6
+#  }
+#  propagate_down: false
+#}
 #layer {
 #  name: "output_2nd"
 #  type: "Eltwise"
@@ -1019,13 +1020,15 @@ layer {
 #  eltwise_param {
 #    operation: SUM
 #  }
+#  propagate_down: false
+#  propagate_down: true
 #}
 
 layer {
   name: "loss_2nd_order"
   type: "SoftmaxWithLoss"
   #bottom: "output_2nd"
-  bottom: "merge_1st"
+  bottom: "fc8_human_second_order"
   bottom: "label_order2"
   top: "loss_2nd_order"
   include {
@@ -1039,7 +1042,7 @@ layer {
   name: "accuracy_2nd_order"
   type: "SegAccuracy"
   #bottom: "output_2nd"
-  bottom: "merge_1st"
+  bottom: "fc8_human_second_order"
   bottom: "label_order2"
   top: "accuracy_2nd_order"
   seg_accuracy_param {

@@ -2009,33 +2009,34 @@ layer {
 }
 
 ############### compute loss second order#################
-layer {
-  name: "merge_1st"
-  type: "MergeFirst"
-  bottom: "fc8_fusion"
-  top: "merge_1st"
-  merge_first_param {
-    num_labels: 6
-  }
-  propagate_down: false
-}
-layer {
-  name: "output_2nd"
-  type: "Eltwise"
-  bottom: "merge_1st"
-  bottom: "fc8_fusion_second_order"
-  top: "output_2nd"
-  eltwise_param {
-    operation: SUM
-  }
-  propagate_down: false
-  propagate_down: true
-}
-
+#layer {
+#  name: "merge_1st"
+#  type: "MergeFirst"
+#  bottom: "fc8_fusion"
+#  top: "merge_1st"
+#  merge_first_param {
+#    num_labels: 6
+#  }
+#  propagate_down: false
+#}
+#layer {
+#  name: "output_2nd"
+#  type: "Eltwise"
+#  bottom: "merge_1st"
+#  bottom: "fc8_fusion_second_order"
+#  top: "output_2nd"
+#  eltwise_param {
+#    operation: SUM
+#  }
+#  propagate_down: false
+#  propagate_down: true
+#}
+#
 layer {
   name: "loss_second"
   type: "SoftmaxWithLoss"
-  bottom: "output_2nd"
+  #bottom: "output_2nd"
+  bottom: "fc8_fusion_second_order"
   bottom: "label_order2"
   top: "loss_second"
   loss_param {
@@ -2046,7 +2047,8 @@ layer {
 layer {
   name: "accuracy_second"
   type: "SegAccuracy"
-  bottom: "output_2nd"
+  #bottom: "output_2nd"
+  bottom: "fc8_fusion_second_order"
   bottom: "label_order2"
   top: "accuracy_second"
   seg_accuracy_param {
