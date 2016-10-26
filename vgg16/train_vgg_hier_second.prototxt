@@ -1009,6 +1009,7 @@ layer {
   merge_first_param {
     num_labels: 6
   }
+  propagate_down: false
 }
 layer {
   name: "output_2nd"
@@ -1019,6 +1020,8 @@ layer {
   eltwise_param {
     operation: SUM
   }
+  propagate_down: false
+  propagate_down: true
 }
 
 layer {
