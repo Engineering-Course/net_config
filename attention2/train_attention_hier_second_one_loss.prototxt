@@ -1,3 +1,20 @@
+# VGG 16-layer network convolutional finetuning
+# Network modified to have smaller receptive field (128 pixels)
+# and smaller stride (8 pixels) when run in convolutional mode.
+#
+# In this model we also change max pooling size in the first 4 layers
+# from 2 to 3 while retaining stride = 2
+# which makes it easier to exactly align responses at different layers.
+#
+# For alignment to work, we set (we choose 32x so as to be able to evaluate
+# the model for all different subsampling sizes):
+# (1) input dimension equal to
+# $n = 32 * k - 31$, e.g., 321 (for k = 11)
+# Dimension after pooling w. subsampling:
+# (16 * k - 15); (8 * k - 7); (4 * k - 3); (2 * k - 1); (k).
+# For k = 11, these translate to
+#           161;          81;          41;          21;  11
+# 
 
 name: "${NET_ID}"
 
@@ -1569,34 +1586,34 @@ layer {
     }
   }
 }
-layer {
-  bottom: "fc7"
-  top: "fc8_${EXP}_second_order"
-  name: "fc8_${EXP}_second_order"
-  type: "Convolution"
-  param {
-    name: "fc8_w_second_order"
-    lr_mult: 10
-    decay_mult: 1
-  }
-  param {
-    name: "fc8_b_second_order"
-    lr_mult: 20
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 6
-    kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
+#layer {
+#  bottom: "fc7"
+#  top: "fc8_${EXP}_second_order"
+#  name: "fc8_${EXP}_second_order"
+#  type: "Convolution"
+#  param {
+#    name: "fc8_w_second_order"
+#    lr_mult: 10
+#    decay_mult: 1
+#  }
+#  param {
+#    name: "fc8_b_second_order"
+#    lr_mult: 20
+#    decay_mult: 0
+#  }
+#  convolution_param {
+#    num_output: 6
+#    kernel_size: 1
+#    weight_filler {
+#      type: "gaussian"
+#      std: 0.01
+#    }
+#    bias_filler {
+#      type: "constant"
+#      value: 0
+#    }
+#  }
+#}
 
 ############### classifier for resolution 1/2 ###################
 layer {
@@ -1627,34 +1644,34 @@ layer {
     }
   }
 }
-layer {
-  bottom: "fc7_res05"
-  top: "fc8_${EXP}_res05_second_order"
-  name: "fc8_${EXP}_res05_second_order"
-  type: "Convolution"
-  param {
-    name: "fc8_w_second_order"
-    lr_mult: 10
-    decay_mult: 1
-  }
-  param {
-    name: "fc8_b_second_order"
-    lr_mult: 20
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 6
-    kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
+#layer {
+#  bottom: "fc7_res05"
+#  top: "fc8_${EXP}_res05_second_order"
+#  name: "fc8_${EXP}_res05_second_order"
+#  type: "Convolution"
+#  param {
+#    name: "fc8_w_second_order"
+#    lr_mult: 10
+#    decay_mult: 1
+#  }
+#  param {
+#    name: "fc8_b_second_order"
+#    lr_mult: 20
+#    decay_mult: 0
+#  }
+#  convolution_param {
+#    num_output: 6
+#    kernel_size: 1
+#    weight_filler {
+#      type: "gaussian"
+#      std: 0.01
+#    }
+#    bias_filler {
+#      type: "constant"
+#      value: 0
+#    }
+#  }
+#}
 
 ############### classifier for resolution 3/4 ###################
 layer {
@@ -1685,34 +1702,34 @@ layer {
     }
   }
 }
-layer {
-  bottom: "fc7_res075"
-  top: "fc8_${EXP}_res075_second_order"
-  name: "fc8_${EXP}_res075_second_order"
-  type: "Convolution"
-  param {
-    name: "fc8_w_second_order"
-    lr_mult: 10
-    decay_mult: 1
-  }
-  param {
-    name: "fc8_b_second_order"
-    lr_mult: 20
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 6
-    kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
+#layer {
+#  bottom: "fc7_res075"
+#  top: "fc8_${EXP}_res075_second_order"
+#  name: "fc8_${EXP}_res075_second_order"
+#  type: "Convolution"
+#  param {
+#    name: "fc8_w_second_order"
+#    lr_mult: 10
+#    decay_mult: 1
+#  }
+#  param {
+#    name: "fc8_b_second_order"
+#    lr_mult: 20
+#    decay_mult: 0
+#  }
+#  convolution_param {
+#    num_output: 6
+#    kernel_size: 1
+#    weight_filler {
+#      type: "gaussian"
+#      std: 0.01
+#    }
+#    bias_filler {
+#      type: "constant"
+#      value: 0
+#    }
+#  }
+#}
 
 ############### upsampling ##################
 layer {
@@ -1749,17 +1766,17 @@ layer {
     pad_end: 0
   }
 }
-layer {
-  bottom: "fc8_${EXP}_res05_second_order"
-  top: "fc8_${EXP}_res05_interp_second_order"
-  name: "fc8_${EXP}_res05_interp_second_order"
-  type: "Interp"
-  interp_param {
-    zoom_factor: 2
-    pad_beg: 0
-    pad_end: 0
-  }
-}
+#layer {
+#  bottom: "fc8_${EXP}_res05_second_order"
+#  top: "fc8_${EXP}_res05_interp_second_order"
+#  name: "fc8_${EXP}_res05_interp_second_order"
+#  type: "Interp"
+#  interp_param {
+#    zoom_factor: 2
+#    pad_beg: 0
+#    pad_end: 0
+#  }
+#}
 
 layer {
   bottom: "fc8_${EXP}_res075"
@@ -1773,18 +1790,18 @@ layer {
     pad_end: 0
   }
 }
-layer {
-  bottom: "fc8_${EXP}_res075_second_order"
-  top: "fc8_${EXP}_res075_interp_second_order"
-  name: "fc8_${EXP}_res075_interp_second_order"
-  type: "Interp"
-  interp_param {
-    zoom_factor: 4
-    shrink_factor: 3    
-    pad_beg: 0
-    pad_end: 0
-  }
-}
+#layer {
+#  bottom: "fc8_${EXP}_res075_second_order"
+#  top: "fc8_${EXP}_res075_interp_second_order"
+#  name: "fc8_${EXP}_res075_interp_second_order"
+#  type: "Interp"
+#  interp_param {
+#    zoom_factor: 4
+#    shrink_factor: 3    
+#    pad_beg: 0
+#    pad_end: 0
+#  }
+#}
 
 ############### concatenation and pass through attention model #########
 layer {
@@ -1884,13 +1901,13 @@ layer {
   name: "fc8_product"
   type: "SpatialProduct"
 }
-layer {
-  bottom: "fc8_${EXP}_second_order"
-  bottom: "attention1"
-  top: "fc8_product_second_order"
-  name: "fc8_product_second_order"
-  type: "SpatialProduct"
-}
+#layer {
+#  bottom: "fc8_${EXP}_second_order"
+#  bottom: "attention1"
+#  top: "fc8_product_second_order"
+#  name: "fc8_product_second_order"
+#  type: "SpatialProduct"
+#}
 
 layer {
   bottom: "fc8_${EXP}_res075_interp"
@@ -1899,13 +1916,13 @@ layer {
   name: "fc8_res075_product"
   type: "SpatialProduct"
 }
-layer {
-  bottom: "fc8_${EXP}_res075_interp_second_order"
-  bottom: "attention2"
-  top: "fc8_res075_product_second_order" 
-  name: "fc8_res075_product_second_order"
-  type: "SpatialProduct"
-}
+#layer {
+#  bottom: "fc8_${EXP}_res075_interp_second_order"
+#  bottom: "attention2"
+#  top: "fc8_res075_product_second_order" 
+#  name: "fc8_res075_product_second_order"
+#  type: "SpatialProduct"
+#}
 
 layer {
   bottom: "fc8_${EXP}_res05_interp"
@@ -1914,13 +1931,13 @@ layer {
   name: "fc8_res05_product"
   type: "SpatialProduct"
 }
-layer {
-  bottom: "fc8_${EXP}_res05_interp_second_order"
-  bottom: "attention3"
-  top: "fc8_res05_product_second_order" 
-  name: "fc8_res05_product_second_order"
-  type: "SpatialProduct"
-}
+#layer {
+#  bottom: "fc8_${EXP}_res05_interp_second_order"
+#  bottom: "attention3"
+#  top: "fc8_res05_product_second_order" 
+#  name: "fc8_res05_product_second_order"
+#  type: "SpatialProduct"
+#}
 
 ### add features ###
 layer {
@@ -1934,17 +1951,17 @@ layer {
     operation: SUM
   }
 }
-layer {
-  bottom: "fc8_product_second_order"
-  bottom: "fc8_res075_product_second_order"
-  bottom: "fc8_res05_product_second_order"
-  top: "fc8_fusion_second_order"
-  name: "fc8_fusion_second_order"
-  type: "Eltwise"
-  eltwise_param {
-    operation: SUM
-  }
-}
+#layer {
+#  bottom: "fc8_product_second_order"
+#  bottom: "fc8_res075_product_second_order"
+#  bottom: "fc8_res05_product_second_order"
+#  top: "fc8_fusion_second_order"
+#  name: "fc8_fusion_second_order"
+#  type: "Eltwise"
+#  eltwise_param {
+#    operation: SUM
+#  }
+#}
 
 ############### shrink label ################
 layer {
@@ -1991,96 +2008,32 @@ layer {
   }
 }
 
-############## add supervsion to fc8's directly ##########
-## resolution 1
-layer {
-  name: "loss_first_res1"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}"
-  bottom: "label_shrink8"
-  top: "loss_first_res1"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_first_res1"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}"
-  bottom: "label_shrink8"
-  top: "accuracy_first_res1"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-## resolution 3/4
-# interp layer does not support 3/4 scale for ground truth
-# instead we interpolate score map
-layer {
-  name: "loss_first_res075"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}_res075_interp"
-  bottom: "label_shrink8"
-  top: "loss_first_res075"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_first_res075"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}_res075_interp"
-  bottom: "label_shrink8"
-  top: "accuracy_first_res075"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-## resolution 1/2
-layer {
-  bottom: "label"
-  top: "label_shrink16"
-  name: "label_shrink16"
-  type: "Interp"
-  interp_param {
-    shrink_factor: 16
-    pad_beg: 0
-    pad_end: 0
-  }
-}
-layer {
-  name: "loss_first_res05"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}_res05"
-  bottom: "label_shrink16"
-  top: "loss_first_res05"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_first_res05"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}_res05"
-  bottom: "label_shrink16"
-  top: "accuracy_first_res05"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-
 ############### compute loss second order#################
+layer {
+  name: "merge_1st"
+  type: "MergeFirst"
+  bottom: "fc8_fusion"
+  top: "merge_1st"
+  merge_first_param {
+    num_labels: 6
+  }
+}
+#layer {
+#  name: "output_2nd"
+#  type: "Eltwise"
+#  bottom: "merge_1st"
+#  bottom: "fc8_fusion_second_order"
+#  top: "output_2nd"
+#  eltwise_param {
+#    operation: SUM
+#  }
+#}
 
 layer {
   name: "loss_second"
   type: "SoftmaxWithLoss"
-  bottom: "fc8_fusion_second_order"
+  #bottom: "output_2nd"
+  bottom: "merge_1st"
   bottom: "label_order2"
   top: "loss_second"
   loss_param {
@@ -2091,94 +2044,10 @@ layer {
 layer {
   name: "accuracy_second"
   type: "SegAccuracy"
-  bottom: "fc8_fusion_second_order"
+  #bottom: "output_2nd"
+  bottom: "merge_1st"
   bottom: "label_order2"
   top: "accuracy_second"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-############## add supervsion to fc8's directly ##########
-## resolution 1
-layer {
-  name: "loss_second_res1"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}_second_order"
-  bottom: "label_order2"
-  top: "loss_second_res1"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_second_res1"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}_second_order"
-  bottom: "label_order2"
-  top: "accuracy_second_res1"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-## resolution 3/4
-# interp layer does not support 3/4 scale for ground truth
-# instead we interpolate score map
-layer {
-  name: "loss_second_res075"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}_res075_interp_second_order"
-  bottom: "label_order2"
-  top: "loss_second_res075"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_second_res075"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}_res075_interp_second_order"
-  bottom: "label_order2"
-  top: "accuracy_second_res075"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-## resolution 1/2
-
-
-layer {
-  name: "label_order2_16"
-  type: "MergeLabel"
-  bottom: "label_shrink16"
-  top: "label_order2_16"
-  merge_label_param {
-    order: 2
-  }
-}
-
-
-layer {
-  name: "loss_second_res05"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}_res05_second_order"
-  bottom: "label_order2_16"
-  top: "loss_second_res05"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_second_res05"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}_res05_second_order"
-  bottom: "label_order2_16"
-  top: "accuracy_second_res05"
   seg_accuracy_param {
     ignore_label: 255
   } 

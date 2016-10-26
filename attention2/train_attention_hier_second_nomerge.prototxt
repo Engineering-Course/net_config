@@ -1,3 +1,20 @@
+# VGG 16-layer network convolutional finetuning
+# Network modified to have smaller receptive field (128 pixels)
+# and smaller stride (8 pixels) when run in convolutional mode.
+#
+# In this model we also change max pooling size in the first 4 layers
+# from 2 to 3 while retaining stride = 2
+# which makes it easier to exactly align responses at different layers.
+#
+# For alignment to work, we set (we choose 32x so as to be able to evaluate
+# the model for all different subsampling sizes):
+# (1) input dimension equal to
+# $n = 32 * k - 31$, e.g., 321 (for k = 11)
+# Dimension after pooling w. subsampling:
+# (16 * k - 15); (8 * k - 7); (4 * k - 3); (2 * k - 1); (k).
+# For k = 11, these translate to
+#           161;          81;          41;          21;  11
+# 
 
 name: "${NET_ID}"
 
@@ -1991,95 +2008,34 @@ layer {
   }
 }
 
-############## add supervsion to fc8's directly ##########
-## resolution 1
-layer {
-  name: "loss_first_res1"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}"
-  bottom: "label_shrink8"
-  top: "loss_first_res1"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_first_res1"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}"
-  bottom: "label_shrink8"
-  top: "accuracy_first_res1"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-## resolution 3/4
-# interp layer does not support 3/4 scale for ground truth
-# instead we interpolate score map
-layer {
-  name: "loss_first_res075"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}_res075_interp"
-  bottom: "label_shrink8"
-  top: "loss_first_res075"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_first_res075"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}_res075_interp"
-  bottom: "label_shrink8"
-  top: "accuracy_first_res075"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-## resolution 1/2
-layer {
-  bottom: "label"
-  top: "label_shrink16"
-  name: "label_shrink16"
-  type: "Interp"
-  interp_param {
-    shrink_factor: 16
-    pad_beg: 0
-    pad_end: 0
-  }
-}
-layer {
-  name: "loss_first_res05"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}_res05"
-  bottom: "label_shrink16"
-  top: "loss_first_res05"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_first_res05"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}_res05"
-  bottom: "label_shrink16"
-  top: "accuracy_first_res05"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-
 ############### compute loss second order#################
-
+#layer {
+#  name: "merge_1st"
+#  type: "MergeFirst"
+#  bottom: "fc8_fusion"
+#  top: "merge_1st"
+#  merge_first_param {
+#    num_labels: 6
+#  }
+#  propagate_down: false
+#}
+#layer {
+#  name: "output_2nd"
+#  type: "Eltwise"
+#  bottom: "merge_1st"
+#  bottom: "fc8_fusion_second_order"
+#  top: "output_2nd"
+#  eltwise_param {
+#    operation: SUM
+#  }
+#  propagate_down: false
+#  propagate_down: true
+#}
+#
 layer {
   name: "loss_second"
   type: "SoftmaxWithLoss"
+  #bottom: "output_2nd"
   bottom: "fc8_fusion_second_order"
   bottom: "label_order2"
   top: "loss_second"
@@ -2091,94 +2047,10 @@ layer {
 layer {
   name: "accuracy_second"
   type: "SegAccuracy"
+  #bottom: "output_2nd"
   bottom: "fc8_fusion_second_order"
   bottom: "label_order2"
   top: "accuracy_second"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-############## add supervsion to fc8's directly ##########
-## resolution 1
-layer {
-  name: "loss_second_res1"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}_second_order"
-  bottom: "label_order2"
-  top: "loss_second_res1"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_second_res1"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}_second_order"
-  bottom: "label_order2"
-  top: "accuracy_second_res1"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-## resolution 3/4
-# interp layer does not support 3/4 scale for ground truth
-# instead we interpolate score map
-layer {
-  name: "loss_second_res075"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}_res075_interp_second_order"
-  bottom: "label_order2"
-  top: "loss_second_res075"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_second_res075"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}_res075_interp_second_order"
-  bottom: "label_order2"
-  top: "accuracy_second_res075"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
-}
-
-## resolution 1/2
-
-
-layer {
-  name: "label_order2_16"
-  type: "MergeLabel"
-  bottom: "label_shrink16"
-  top: "label_order2_16"
-  merge_label_param {
-    order: 2
-  }
-}
-
-
-layer {
-  name: "loss_second_res05"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}_res05_second_order"
-  bottom: "label_order2_16"
-  top: "loss_second_res05"
-  loss_param {
-    ignore_label: 255
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "accuracy_second_res05"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}_res05_second_order"
-  bottom: "label_order2_16"
-  top: "accuracy_second_res05"
   seg_accuracy_param {
     ignore_label: 255
   } 
