@@ -2120,7 +2120,7 @@ layer {
   top: "accuracy_second_res1"
   seg_accuracy_param {
     ignore_label: 255
-  } 
+  }
 }
 
 ## resolution 3/4
@@ -2145,7 +2145,7 @@ layer {
   top: "accuracy_second_res075"
   seg_accuracy_param {
     ignore_label: 255
-  } 
+  }
 }
 
 ## resolution 1/2
@@ -2181,5 +2181,5 @@ layer {
   top: "accuracy_second_res05"
   seg_accuracy_param {
     ignore_label: 255
-  } 
+  }
 }
