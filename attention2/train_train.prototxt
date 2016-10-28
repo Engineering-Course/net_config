@@ -1969,12 +1969,51 @@ layer {
   }
 }
 
+layer {
+  name: "label_pose_1st"
+  type: "PoseEvaluate"
+  bottom: "label_shrink8"
+  top: "label_pose_1st"
+  pose_evaluate_param {
+    num_joint: 9
+  }
+}
 ############### compute loss first order#################
+layer {
+  name: "fc8_mask_1st"
+  type: "MaskCreate"
+  bottom: "fc8_fusion"
+  top: "fc8_mask_1st"
+  mask_create_param {
+    num_cls: 20
+  }
+}
+layer {
+  name: "fc8_pose_1st"
+  type: "PoseEvaluate"
+  bottom: "fc8_mask_1st"
+  top: "fc8_pose_1st"
+  pose_evaluate_param {
+    num_joint: 9
+  }
+}
+layer {
+  name: "fc8_pose_1st_error"
+  type: "PoseError"
+  bottom: "fc8_pose_1st"
+  bottom: "label_pose_1st"
+  top: "fc8_pose_1st_error"
+  pose_error_param {
+    num_joint: 9
+    error_order: 1
+  }
+} 
 layer {
   name: "loss_first"
   type: "SoftmaxWithLoss"
   bottom: "fc8_fusion"
   bottom: "label_shrink8"
+  bottom: "fc8_pose_1st_error"
   top: "loss_first"
   loss_param {
     ignore_label: 255
@@ -1998,6 +2037,7 @@ layer {
   type: "SoftmaxWithLoss"
   bottom: "fc8_human"
   bottom: "label_shrink8"
+  bottom: "fc8_pose_1st_error"
   top: "loss_first_res1"
   loss_param {
     ignore_label: 255
@@ -2023,6 +2063,7 @@ layer {
   type: "SoftmaxWithLoss"
   bottom: "fc8_human_res075_interp"
   bottom: "label_shrink8"
+  bottom: "fc8_pose_1st_error"
   top: "loss_first_res075"
   loss_param {
     ignore_label: 255
@@ -2057,6 +2098,7 @@ layer {
   type: "SoftmaxWithLoss"
   bottom: "fc8_human_res05"
   bottom: "label_shrink16"
+  bottom: "fc8_pose_1st_error"
   top: "loss_first_res05"
   loss_param {
     ignore_label: 255
