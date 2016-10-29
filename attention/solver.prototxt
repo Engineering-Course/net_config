@@ -1,10 +1,10 @@
 train_net: "${EXP}/config/${NET_ID}/train_${TRAIN_SET}.prototxt"
 
-iter_size: 3
+iter_size: 2
 lr_policy: "step"
 gamma: 0.1
 stepsize: 200000
-base_lr: 0.0001
+base_lr: 0.001
 
 display: 10
 max_iter: 600000
