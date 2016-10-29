@@ -24,7 +24,7 @@ layer {
     mean_value: 104.008
     mean_value: 116.669
     mean_value: 122.675
-    crop_size: 513
+    crop_size: 640
     mirror: false
   }
   include: { phase: TEST }
