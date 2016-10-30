@@ -1,5 +1,5 @@
 
-name: "attention"
+name: "attention2"
 
 ### load data ###
 layer {
@@ -1569,7 +1569,34 @@ layer {
     }
   }
 }
-
+layer {
+  bottom: "fc7"
+  top: "fc8_human_second_order"
+  name: "fc8_human_second_order"
+  type: "Convolution"
+  param {
+    name: "fc8_w_second_order"
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    name: "fc8_b_second_order"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 6
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
 
 ############### classifier for resolution 1/2 ###################
 layer {
@@ -1600,6 +1627,35 @@ layer {
     }
   }
 }
+layer {
+  bottom: "fc7_res05"
+  top: "fc8_human_res05_second_order"
+  name: "fc8_human_res05_second_order"
+  type: "Convolution"
+  param {
+    name: "fc8_w_second_order"
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    name: "fc8_b_second_order"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 6
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
 ############### classifier for resolution 3/4 ###################
 layer {
   bottom: "fc7_res075"
@@ -1629,6 +1685,35 @@ layer {
     }
   }
 }
+layer {
+  bottom: "fc7_res075"
+  top: "fc8_human_res075_second_order"
+  name: "fc8_human_res075_second_order"
+  type: "Convolution"
+  param {
+    name: "fc8_w_second_order"
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    name: "fc8_b_second_order"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 6
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
 ############### upsampling ##################
 layer {
   bottom: "fc7_res05"
@@ -1664,7 +1749,17 @@ layer {
     pad_end: 0
   }
 }
-
+layer {
+  bottom: "fc8_human_res05_second_order"
+  top: "fc8_human_res05_interp_second_order"
+  name: "fc8_human_res05_interp_second_order"
+  type: "Interp"
+  interp_param {
+    zoom_factor: 2
+    pad_beg: 0
+    pad_end: 0
+  }
+}
 
 layer {
   bottom: "fc8_human_res075"
@@ -1678,7 +1773,18 @@ layer {
     pad_end: 0
   }
 }
-
+layer {
+  bottom: "fc8_human_res075_second_order"
+  top: "fc8_human_res075_interp_second_order"
+  name: "fc8_human_res075_interp_second_order"
+  type: "Interp"
+  interp_param {
+    zoom_factor: 4
+    shrink_factor: 3    
+    pad_beg: 0
+    pad_end: 0
+  }
+}
 
 ############### concatenation and pass through attention model #########
 layer {
@@ -1778,7 +1884,13 @@ layer {
   name: "fc8_product"
   type: "SpatialProduct"
 }
-
+layer {
+  bottom: "fc8_human_second_order"
+  bottom: "attention1"
+  top: "fc8_product_second_order"
+  name: "fc8_product_second_order"
+  type: "SpatialProduct"
+}
 
 layer {
   bottom: "fc8_human_res075_interp"
@@ -1787,7 +1899,13 @@ layer {
   name: "fc8_res075_product"
   type: "SpatialProduct"
 }
-
+layer {
+  bottom: "fc8_human_res075_interp_second_order"
+  bottom: "attention2"
+  top: "fc8_res075_product_second_order" 
+  name: "fc8_res075_product_second_order"
+  type: "SpatialProduct"
+}
 
 layer {
   bottom: "fc8_human_res05_interp"
@@ -1796,7 +1914,13 @@ layer {
   name: "fc8_res05_product"
   type: "SpatialProduct"
 }
-
+layer {
+  bottom: "fc8_human_res05_interp_second_order"
+  bottom: "attention3"
+  top: "fc8_res05_product_second_order" 
+  name: "fc8_res05_product_second_order"
+  type: "SpatialProduct"
+}
 
 ### add features ###
 layer {
@@ -1810,6 +1934,18 @@ layer {
     operation: SUM
   }
 }
+layer {
+  bottom: "fc8_product_second_order"
+  bottom: "fc8_res075_product_second_order"
+  bottom: "fc8_res05_product_second_order"
+  top: "fc8_fusion_second_order"
+  name: "fc8_fusion_second_order"
+  type: "Eltwise"
+  eltwise_param {
+    operation: SUM
+  }
+}
+
 ############### shrink label ################
 layer {
   bottom: "label"
@@ -1823,7 +1959,15 @@ layer {
   }
 }
 
-
+layer {
+  name: "label_order2"
+  type: "MergeLabel"
+  bottom: "label_shrink8"
+  top: "label_order2"
+  merge_label_param {
+    order: 2
+  }
+}
 
 layer {
   name: "label_pose_1st"
@@ -1975,3 +2119,109 @@ layer {
 
 ############### compute loss second order#################
 
+layer {
+  name: "loss_second"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_fusion_second_order"
+  bottom: "label_order2"
+  top: "loss_second"
+  loss_param {
+    ignore_label: 255
+  }
+  include: { phase: TRAIN }
+}
+layer {
+  name: "accuracy_second"
+  type: "SegAccuracy"
+  bottom: "fc8_fusion_second_order"
+  bottom: "label_order2"
+  top: "accuracy_second"
+  seg_accuracy_param {
+    ignore_label: 255
+  } 
+}
+
+############## add supervsion to fc8's directly ##########
+## resolution 1
+layer {
+  name: "loss_second_res1"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_human_second_order"
+  bottom: "label_order2"
+  top: "loss_second_res1"
+  loss_param {
+    ignore_label: 255
+  }
+  include: { phase: TRAIN }
+}
+layer {
+  name: "accuracy_second_res1"
+  type: "SegAccuracy"
+  bottom: "fc8_human_second_order"
+  bottom: "label_order2"
+  top: "accuracy_second_res1"
+  seg_accuracy_param {
+    ignore_label: 255
+  } 
+}
+
+## resolution 3/4
+# interp layer does not support 3/4 scale for ground truth
+# instead we interpolate score map
+layer {
+  name: "loss_second_res075"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_human_res075_interp_second_order"
+  bottom: "label_order2"
+  top: "loss_second_res075"
+  loss_param {
+    ignore_label: 255
+  }
+  include: { phase: TRAIN }
+}
+layer {
+  name: "accuracy_second_res075"
+  type: "SegAccuracy"
+  bottom: "fc8_human_res075_interp_second_order"
+  bottom: "label_order2"
+  top: "accuracy_second_res075"
+  seg_accuracy_param {
+    ignore_label: 255
+  } 
+}
+
+## resolution 1/2
+
+
+layer {
+  name: "label_order2_16"
+  type: "MergeLabel"
+  bottom: "label_shrink16"
+  top: "label_order2_16"
+  merge_label_param {
+    order: 2
+  }
+}
+
+
+layer {
+  name: "loss_second_res05"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_human_res05_second_order"
+  bottom: "label_order2_16"
+  top: "loss_second_res05"
+  loss_param {
+    ignore_label: 255
+  }
+  include: { phase: TRAIN }
+}
+layer {
+  name: "accuracy_second_res05"
+  type: "SegAccuracy"
+  bottom: "fc8_human_res05_second_order"
+  bottom: "label_order2_16"
+  top: "accuracy_second_res05"
+  seg_accuracy_param {
+    ignore_label: 255
+  } 
+}

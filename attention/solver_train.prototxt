@@ -3,11 +3,11 @@ train_net: "human/config/attention/train_train.prototxt"
 iter_size: 2
 lr_policy: "step"
 gamma: 0.1
-stepsize: 200000
-base_lr: 0.001
+stepsize: 20000
+base_lr: 0.0001
 
 display: 10
-max_iter: 600000
+max_iter: 60000
 momentum: 0.9
 weight_decay: 0.0005
 

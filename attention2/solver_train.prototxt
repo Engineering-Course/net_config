@@ -1,17 +1,17 @@
 train_net: "human/config/attention2/train_train.prototxt"
 
-iter_size: 3
+iter_size: 2
 lr_policy: "step"
 gamma: 0.1
 stepsize: 200000
 base_lr: 0.00001
 
 display: 10
-max_iter: 600000
+max_iter: 50000
 momentum: 0.9
 weight_decay: 0.0005
 
-snapshot: 1000
+snapshot: 1016
 snapshot_prefix: "human/model/attention2/train"
 solver_mode: GPU
 #debug_info: true
