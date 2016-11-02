@@ -1,19 +1,3 @@
-# VGG 16-layer network convolutional finetuning
-# Network modified to have smaller receptive field (128 pixels)
-# nand smaller stride (8 pixels) when run in convolutional mode.
-#
-# In this model we also change max pooling size in the first 4 layers
-# from 2 to 3 while retaining stride = 2
-# which makes it easier to exactly align responses at different layers.
-#
-# For alignment to work, we set (we choose 32x so as to be able to evaluate
-# the model for all different subsampling sizes):
-# (1) input dimension equal to
-# $n = 32 * k - 31$, e.g., 321 (for k = 11)
-# Dimension after pooling w. subsampling:
-# (16 * k - 15); (8 * k - 7); (4 * k - 3); (2 * k - 1); (k).
-# For k = 11, these translate to
-#           161;          81;          41;          21;  11
 # 
 
 name: "vgg16"
@@ -529,32 +513,6 @@ layer {
     }
   }
 }
-layer {
-  name: "fc8_human_1_second_order"
-  type: "Convolution"
-  bottom: "fc7_1"
-  top: "fc8_human_1_second_order"
-  param {
-    lr_mult: 10
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 20
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 6
-    kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
 
 ### hole = 12
 layer {
@@ -640,32 +598,6 @@ layer {
   }
   convolution_param {
     num_output: 20
-    kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
-layer {
-  name: "fc8_human_2_second_order"
-  type: "Convolution"
-  bottom: "fc7_2"
-  top: "fc8_human_2_second_order"
-  param {
-    lr_mult: 10
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 20
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 6
     kernel_size: 1
     weight_filler {
       type: "gaussian"
@@ -773,32 +705,6 @@ layer {
     }
   }
 }
-layer {
-  name: "fc8_human_3_second_order"
-  type: "Convolution"
-  bottom: "fc7_3"
-  top: "fc8_human_3_second_order"
-  param {
-    lr_mult: 10
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 20
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 6
-    kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
 
 ### hole = 24
 layer {
@@ -895,34 +801,8 @@ layer {
     }
   }
 }
-layer {
-  name: "fc8_human_4_second_order"
-  type: "Convolution"
-  bottom: "fc7_4"
-  top: "fc8_human_4_second_order"
-  param {
-    lr_mult: 10
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 20
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 6
-    kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
 
-### SUM the four branches of first order
+### SUM the four branches
 layer {
   bottom: "fc8_human_1"
   bottom: "fc8_human_2"
@@ -936,21 +816,7 @@ layer {
   }
 }
 
-### SUM the four branches of second order
-layer {
-  bottom: "fc8_human_1_second_order"
-  bottom: "fc8_human_2_second_order"
-  bottom: "fc8_human_3_second_order"
-  bottom: "fc8_human_4_second_order"
-  top: "fc8_human_second_order"
-  name: "fc8_human_second_order"
-  type: "Eltwise"
-  eltwise_param {
-    operation: SUM
-  }
-}
-
-### Merge label ##########
+#################
 layer {
   bottom: "label"
   top: "label_shrink"
@@ -962,25 +828,72 @@ layer {
     pad_end: 0
   }
 }
-
 layer {
-  name: "label_order2"
-  type: "MergeLabel"
+  name: "label_pose_1st"
+  type: "PoseEvaluate"
   bottom: "label_shrink"
-  top: "label_order2"
-  merge_label_param {
-    order: 2
+  top: "label_pose_1st"
+  pose_evaluate_param {
+    num_joint:9
   }
 }
-
-###Loss of First order ######
+layer{
+  name: "label_heatmap"
+  type: "PoseCreate"
+  bottom: "label_pose_1st"
+  bottom: "label_shrink"
+  top: "label_heatmap"
+  pose_create_param {
+    num_joint: 9
+  }
+}
+layer {
+  name: "fc8_mask_1st"
+  type: "MaskCreate"
+  bottom: "fc8_human"
+  top: "fc8_mask_1st"
+  mask_create_param {
+    num_cls: 20
+  }
+}
+layer {
+  name: "fc8_pose_1st"
+  type: "PoseEvaluate"
+  bottom: "fc8_mask_1st"
+  top: "fc8_pose_1st"
+  pose_evaluate_param {
+    num_joint: 9
+  }
+}
+layer {
+  name: "predict_heatmap"
+  type: "PoseCreate"
+  bottom: "fc8_pose_1st"
+  bottom: "fc8_mask_1st"
+  top: "predict_heatmap"
+  pose_create_param {
+    num_joint: 9
+  }
+}
+layer {
+  name: "heatmap_error"
+  type: "HeatmapError"
+  bottom: "predict_heatmap"
+  bottom: "label_heatmap"
+  top: "heatmap_error"
+  heatmap_error_param {
+    scale: 0.1
+  }
+  propagate_down:false
+  propagate_down:false
+}
 
 layer {
-  name: "loss_1st_order"
+  name: "loss"
   type: "SoftmaxWithLoss"
   bottom: "fc8_human"
   bottom: "label_shrink"
-  top: "loss_1st_order"
+  bottom: "heatmap_error"
   include {
     phase: TRAIN
   }
@@ -988,42 +901,18 @@ layer {
     ignore_label: 255
   }
 }
+
 layer {
-  name: "accuracy_1st_order"
+  name: "accuracy"
   type: "SegAccuracy"
   bottom: "fc8_human"
   bottom: "label_shrink"
-  top: "accuracy_1st_order"
+  top: "accuracy"
   seg_accuracy_param {
     ignore_label: 255
   }
 }
 
-
-### Loss of Second order ###
-layer {
-  name: "loss_2nd_order"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_human_second_order"
-  bottom: "label_order2"
-  top: "loss_2nd_order"
-  include {
-    phase: TRAIN
-  }
-  loss_param {
-    ignore_label: 255
-  }
-}
-layer {
-  name: "accuracy_2nd_order"
-  type: "SegAccuracy"
-  bottom: "fc8_human_second_order"
-  bottom: "label_order2"
-  top: "accuracy_2nd_order"
-  seg_accuracy_param {
-    ignore_label: 255
-  }
-}
 layer {
   name: "silence"
   type: "Silence"

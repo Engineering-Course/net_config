@@ -21,7 +21,7 @@ layer {
   image_data_param {
     root_folder: "${DATA_ROOT}"
     source: "${EXP}/list/${TRAIN_SET}.txt"
-    batch_size: 12
+    batch_size: 10
     shuffle: true
     label_type: PIXEL
   }
@@ -837,6 +837,16 @@ layer {
     num_joint:9
   }
 }
+layer{
+  name: "label_heatmap"
+  type: "PoseCreate"
+  bottom: "label_pose_1st"
+  bottom: "label_shrink"
+  top: "label_heatmap"
+  pose_create_param {
+    num_joint: 9
+  }
+}
 layer {
   name: "fc8_mask_1st"
   type: "MaskCreate"
@@ -856,15 +866,26 @@ layer {
   }
 }
 layer {
-  name: "fc8_pose_1st_error"
-  type: "PoseError"
+  name: "predict_heatmap"
+  type: "PoseCreate"
   bottom: "fc8_pose_1st"
-  bottom: "label_pose_1st"
-  top: "fc8_pose_1st_error"
-  pose_error_param {
+  bottom: "fc8_mask_1st"
+  top: "predict_heatmap"
+  pose_create_param {
     num_joint: 9
-    error_order: 1
   }
+}
+layer {
+  name: "heatmap_error"
+  type: "HeatmapError"
+  bottom: "predict_heatmap"
+  bottom: "label_heatmap"
+  top: "heatmap_error"
+  heatmap_error_param {
+    scale: 0.1
+  }
+  propagate_down:false
+  propagate_down:false
 }
 
 layer {
@@ -872,7 +893,7 @@ layer {
   type: "SoftmaxWithLoss"
   bottom: "fc8_${EXP}"
   bottom: "label_shrink"
-  bottom: "fc8_pose_1st_error"
+  bottom: "heatmap_error"
   include {
     phase: TRAIN
   }
@@ -880,6 +901,7 @@ layer {
     ignore_label: 255
   }
 }
+
 layer {
   name: "accuracy"
   type: "SegAccuracy"
@@ -890,6 +912,7 @@ layer {
     ignore_label: 255
   }
 }
+
 layer {
   name: "silence"
   type: "Silence"
