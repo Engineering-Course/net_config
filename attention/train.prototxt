@@ -1,1 +1,1 @@
-train_attention_only_first_order_pose.prototxt
+train_attention_heatmap.prototxt

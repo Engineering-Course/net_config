@@ -4,13 +4,13 @@ lr_policy: "poly"
 power: 0.9
 base_lr: 1e-4
 
-average_loss: 10
+average_loss: 20
 display: 20
-max_iter: 600000
+max_iter: 15240
 momentum: 0.9
 weight_decay: 0.0005
 
-snapshot: 1000
+snapshot: 1524
 snapshot_prefix: "${EXP}/model/${NET_ID}/train"
 solver_mode: GPU
 #debug_info: true

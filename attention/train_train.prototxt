@@ -1822,15 +1822,22 @@ layer {
     pad_end: 0
   }
 }
-
-
-
 layer {
   name: "label_pose_1st"
   type: "PoseEvaluate"
   bottom: "label_shrink8"
   top: "label_pose_1st"
   pose_evaluate_param {
+    num_joint: 9
+  }
+}
+layer{
+  name: "label_heatmap"
+  type: "PoseCreate"
+  bottom: "label_pose_1st"
+  bottom: "label_shrink8"
+  top: "label_heatmap"
+  pose_create_param {
     num_joint: 9
   }
 }
@@ -1854,22 +1861,33 @@ layer {
   }
 }
 layer {
-  name: "fc8_pose_1st_error"
-  type: "PoseError"
+  name: "predict_heatmap"
+  type: "PoseCreate"
   bottom: "fc8_pose_1st"
-  bottom: "label_pose_1st"
-  top: "fc8_pose_1st_error"
-  pose_error_param {
+  bottom: "fc8_mask_1st"
+  top: "predict_heatmap"
+  pose_create_param {
     num_joint: 9
-    error_order: 1
   }
-} 
+}
+layer {
+  name: "heatmap_error"
+  type: "HeatmapError"
+  bottom: "predict_heatmap"
+  bottom: "label_heatmap"
+  top: "heatmap_error"
+  heatmap_error_param {
+    scale: 0.1
+  }
+  propagate_down:false
+  propagate_down:false
+}
 layer {
   name: "loss_first"
   type: "SoftmaxWithLoss"
   bottom: "fc8_fusion"
   bottom: "label_shrink8"
-  bottom: "fc8_pose_1st_error"
+  bottom: "heatmap_error"
   top: "loss_first"
   loss_param {
     ignore_label: 255
@@ -1893,7 +1911,7 @@ layer {
   type: "SoftmaxWithLoss"
   bottom: "fc8_human"
   bottom: "label_shrink8"
-  bottom: "fc8_pose_1st_error"
+  bottom: "heatmap_error"
   top: "loss_first_res1"
   loss_param {
     ignore_label: 255
@@ -1919,7 +1937,7 @@ layer {
   type: "SoftmaxWithLoss"
   bottom: "fc8_human_res075_interp"
   bottom: "label_shrink8"
-  bottom: "fc8_pose_1st_error"
+  bottom: "heatmap_error"
   top: "loss_first_res075"
   loss_param {
     ignore_label: 255
@@ -1954,7 +1972,7 @@ layer {
   type: "SoftmaxWithLoss"
   bottom: "fc8_human_res05"
   bottom: "label_shrink16"
-  bottom: "fc8_pose_1st_error"
+  bottom: "heatmap_error"
   top: "loss_first_res05"
   loss_param {
     ignore_label: 255
@@ -1973,5 +1991,4 @@ layer {
 }
 
 
-############### compute loss second order#################
 

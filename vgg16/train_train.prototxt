@@ -21,7 +21,7 @@ layer {
   image_data_param {
     root_folder: "human/data/"
     source: "human/list/train.txt"
-    batch_size: 10
+    batch_size: 20
     shuffle: true
     label_type: PIXEL
   }
