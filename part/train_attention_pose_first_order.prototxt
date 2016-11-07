@@ -28,7 +28,7 @@ layer {
     root_folder: "${DATA_ROOT}"
     source: "${EXP}/list/part/${TRAIN_SET}.txt"
     label_type: PIXEL
-    batch_size: 8
+    batch_size: 15
     shuffle: true
   }
   transform_param {
@@ -1844,6 +1844,16 @@ layer {
     num_joint:6
   }
 }
+layer {
+  name: "label_heatmap"
+  type: "PoseCreate"
+  bottom: "label_pose_1st"
+  bottom: "label_shrink8"
+  top: "label_heatmap"
+  pose_create_param {
+    num_joint:6
+  }
+}
 ############### compute loss first order#################
 layer {
   name: "fc8_mask_1st"
@@ -1864,34 +1874,133 @@ layer {
   }
 }
 layer {
-  name: "fc8_pose_1st_error"
-  type: "PoseError"
+  name: "predict_heatmap"
+  type: "PoseCreate"
   bottom: "fc8_pose_1st"
-  bottom: "label_pose_1st"
-  top: "fc8_pose_1st_error"
-  pose_error_param {
+  bottom: "fc8_mask_1st"
+  top: "predict_heatmap"
+  pose_create_param {
     num_joint: 6
-    error_order: 1
   }
 }
 layer {
-  name: "loss"
+  name: "heatmap_error"
+  type: "HeatmapError"
+  bottom: "predict_heatmap"
+  bottom: "label_heatmap"
+  top: "heatmap_error"
+  heatmap_error_param {
+    scale: 0.2
+  }
+  propagate_down: false
+  propagate_down: false
+}
+
+layer {
+  name: "loss_first"
   type: "SoftmaxWithLoss"
   bottom: "fc8_fusion"
   bottom: "label_shrink8"
-  bottom: "fc8_pose_1st_error"
+  bottom: "heatmap_error"
+  top: "loss_first"
   loss_param {
     ignore_label: 255
   }
   include: { phase: TRAIN }
 }
 layer {
-  name: "accuracy"
+  name: "accuracy_first"
   type: "SegAccuracy"
   bottom: "fc8_fusion"
   bottom: "label_shrink8"
-  top: "accuracy"
+  top: "accuracy_first"
   seg_accuracy_param {
     ignore_label: 255
   } 
 }
+############## add supervsion to fc8's directly ##########
+## resolution 1
+layer {
+  name: "loss_first_res1"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_${EXP}"
+  bottom: "label_shrink8"
+  bottom: "heatmap_error"
+  top: "loss_first_res1"
+  loss_param {
+    ignore_label: 255
+  }
+  include: { phase: TRAIN }
+}
+layer {
+  name: "accuracy_first_res1"
+  type: "SegAccuracy"
+  bottom: "fc8_${EXP}"
+  bottom: "label_shrink8"
+  top: "accuracy_first_res1"
+  seg_accuracy_param {
+    ignore_label: 255
+  }
+}
+
+## resolution 3/4
+# interp layer does not support 3/4 scale for ground truth
+# instead we interpolate score map
+layer {
+  name: "loss_first_res075"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_${EXP}_res075_interp"
+  bottom: "label_shrink8"
+  bottom: "heatmap_error"
+  top: "loss_first_res075"
+  loss_param {
+    ignore_label: 255
+  }
+  include: { phase: TRAIN }
+}
+layer {
+  name: "accuracy_first_res075"
+  type: "SegAccuracy"
+  bottom: "fc8_${EXP}_res075_interp"
+  bottom: "label_shrink8"
+  top: "accuracy_first_res075"
+  seg_accuracy_param {
+    ignore_label: 255
+  }
+}
+
+## resolution 1/2
+layer {
+  bottom: "label"
+  top: "label_shrink16"
+  name: "label_shrink16"
+  type: "Interp"
+  interp_param {
+    shrink_factor: 16
+    pad_beg: 0
+    pad_end: 0
+  }
+}
+layer {
+  name: "loss_first_res05"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_${EXP}_res05"
+  bottom: "label_shrink16"
+  bottom: "heatmap_error"
+  top: "loss_first_res05"
+  loss_param {
+    ignore_label: 255
+  }
+  include: { phase: TRAIN }
+}
+layer {
+  name: "accuracy_first_res05"
+  type: "SegAccuracy"
+  bottom: "fc8_${EXP}_res05"
+  bottom: "label_shrink16"
+  top: "accuracy_first_res05"
+  seg_accuracy_param {
+    ignore_label: 255
+  }
+}
+

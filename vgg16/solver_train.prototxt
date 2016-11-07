@@ -2,7 +2,7 @@ train_net: "human/config/vgg16/train_train.prototxt"
 
 lr_policy: "poly"
 power: 0.9
-base_lr: 1e-4
+base_lr: 1e-6
 
 average_loss: 20
 display: 20
