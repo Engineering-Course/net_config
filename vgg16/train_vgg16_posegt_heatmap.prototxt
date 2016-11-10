@@ -1,44 +1,49 @@
-# VGG 16-layer network convolutional finetuning
-# Network modified to have smaller receptive field (128 pixels)
-# and smaller stride (8 pixels) when run in convolutional mode.
-#
-# In this model we also change max pooling size in the first 4 layers
-# from 2 to 3 while retaining stride = 2
-# which makes it easier to exactly align responses at different layers.
-#
+# 
 
-name: "vgg16"
+name: "${NET_ID}"
 
 layer {
   name: "data"
-  type: "ImageSegData"
+  type: "ImageSegPoseData"
   top: "data"
   top: "label"
   top: "data_dim"
+  top: "pose_gt"
   include {
-    phase: TEST
+    phase: TRAIN
   }
   transform_param {
-    mirror: false
-    crop_size: 640
+    mirror: true
+    crop_size: 641
     mean_value: 104.008
     mean_value: 116.669
     mean_value: 122.675
   }
   image_data_param {
-    root_folder: "human/data/"
-    source: "human/list/val.txt"
+    root_folder: "${DATA_ROOT}"
+    source: "${EXP}/list/${TRAIN_SET}.txt"
+    posefile: "${EXP}/list/pose_train_list.txt"
     batch_size: 1
+    shuffle: false
     label_type: PIXEL
+    num_pose: 9
   }
 }
 
-###################### DeepLab ##########################
+###################### DeepLab ####################
 layer {
   name: "conv1_1"
   type: "Convolution"
   bottom: "data"
   top: "conv1_1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 64
     pad: 1
@@ -56,6 +61,14 @@ layer {
   type: "Convolution"
   bottom: "conv1_1"
   top: "conv1_2"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 64
     pad: 1
@@ -85,6 +98,14 @@ layer {
   type: "Convolution"
   bottom: "pool1"
   top: "conv2_1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 128
     pad: 1
@@ -102,6 +123,14 @@ layer {
   type: "Convolution"
   bottom: "conv2_1"
   top: "conv2_2"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 128
     pad: 1
@@ -131,6 +160,14 @@ layer {
   type: "Convolution"
   bottom: "pool2"
   top: "conv3_1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 256
     pad: 1
@@ -148,6 +185,14 @@ layer {
   type: "Convolution"
   bottom: "conv3_1"
   top: "conv3_2"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 256
     pad: 1
@@ -165,6 +210,14 @@ layer {
   type: "Convolution"
   bottom: "conv3_2"
   top: "conv3_3"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 256
     pad: 1
@@ -194,6 +247,14 @@ layer {
   type: "Convolution"
   bottom: "pool3"
   top: "conv4_1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 512
     pad: 1
@@ -211,6 +272,14 @@ layer {
   type: "Convolution"
   bottom: "conv4_1"
   top: "conv4_2"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 512
     pad: 1
@@ -228,6 +297,14 @@ layer {
   type: "Convolution"
   bottom: "conv4_2"
   top: "conv4_3"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 512
     pad: 1
@@ -257,6 +334,14 @@ layer {
   type: "Convolution"
   bottom: "pool4"
   top: "conv5_1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 512
     pad: 2
@@ -275,6 +360,14 @@ layer {
   type: "Convolution"
   bottom: "conv5_1"
   top: "conv5_2"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 512
     pad: 2
@@ -293,6 +386,14 @@ layer {
   type: "Convolution"
   bottom: "conv5_2"
   top: "conv5_3"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 512
     pad: 2
@@ -306,6 +407,7 @@ layer {
   bottom: "conv5_3"
   top: "conv5_3"
 }
+
 layer {
   bottom: "conv5_3"
   top: "pool5"
@@ -325,6 +427,14 @@ layer {
   type: "Convolution"
   bottom: "pool5"
   top: "fc6_1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 1024
     pad: 6
@@ -352,6 +462,14 @@ layer {
   type: "Convolution"
   bottom: "fc6_1"
   top: "fc7_1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 1024
     kernel_size: 1
@@ -373,13 +491,29 @@ layer {
   }
 }
 layer {
-  name: "fc8_human_1"
+  name: "fc8_${EXP}_1"
   type: "Convolution"
   bottom: "fc7_1"
-  top: "fc8_human_1"
+  top: "fc8_${EXP}_1"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
   convolution_param {
-    num_output: 20
+    num_output: ${NUM_LABELS}
     kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 
@@ -389,6 +523,14 @@ layer {
   type: "Convolution"
   bottom: "pool5"
   top: "fc6_2"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 1024
     pad: 12
@@ -416,6 +558,14 @@ layer {
   type: "Convolution"
   bottom: "fc6_2"
   top: "fc7_2"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 1024
     kernel_size: 1
@@ -437,13 +587,29 @@ layer {
   }
 }
 layer {
-  name: "fc8_human_2"
+  name: "fc8_${EXP}_2"
   type: "Convolution"
   bottom: "fc7_2"
-  top: "fc8_human_2"
+  top: "fc8_${EXP}_2"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
   convolution_param {
-    num_output: 20
+    num_output: ${NUM_LABELS}
     kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 
@@ -453,6 +619,14 @@ layer {
   type: "Convolution"
   bottom: "pool5"
   top: "fc6_3"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 1024
     pad: 18
@@ -480,6 +654,14 @@ layer {
   type: "Convolution"
   bottom: "fc6_3"
   top: "fc7_3"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 1024
     kernel_size: 1
@@ -501,13 +683,29 @@ layer {
   }
 }
 layer {
-  name: "fc8_human_3"
+  name: "fc8_${EXP}_3"
   type: "Convolution"
   bottom: "fc7_3"
-  top: "fc8_human_3"
+  top: "fc8_${EXP}_3"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
   convolution_param {
-    num_output: 20
+    num_output: ${NUM_LABELS}
     kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 
@@ -517,6 +715,14 @@ layer {
   type: "Convolution"
   bottom: "pool5"
   top: "fc6_4"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 1024
     pad: 24
@@ -544,6 +750,14 @@ layer {
   type: "Convolution"
   bottom: "fc6_4"
   top: "fc7_4"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 1024
     kernel_size: 1
@@ -565,62 +779,91 @@ layer {
   }
 }
 layer {
-  name: "fc8_human_4"
+  name: "fc8_${EXP}_4"
   type: "Convolution"
   bottom: "fc7_4"
-  top: "fc8_human_4"
+  top: "fc8_${EXP}_4"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
   convolution_param {
-    num_output: 20
+    num_output: ${NUM_LABELS}
     kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 
 ### SUM the four branches
 layer {
-  bottom: "fc8_human_1"
-  bottom: "fc8_human_2"
-  bottom: "fc8_human_3"
-  bottom: "fc8_human_4"
-  top: "fc8_human"
-  name: "fc8_human"
+  bottom: "fc8_${EXP}_1"
+  bottom: "fc8_${EXP}_2"
+  bottom: "fc8_${EXP}_3"
+  bottom: "fc8_${EXP}_4"
+  top: "fc8_${EXP}"
+  name: "fc8_${EXP}"
   type: "Eltwise"
   eltwise_param {
     operation: SUM
   }
 }
-## original resolution
+
+#################
+layer {
+  bottom: "label"
+  top: "label_shrink"
+  name: "label_shrink"
+  type: "Interp"
+  interp_param {
+    shrink_factor: 8
+    pad_beg: 0
+    pad_end: 0
+  }
+}
 layer {
   name: "label_pose_1st"
   type: "PoseEvaluate"
-  bottom: "label"
+  bottom: "label_shrink"
   top: "label_pose_1st"
   pose_evaluate_param {
-    num_joint: 9
+    num_joint:9
   }
 }
 layer{
   name: "label_heatmap"
   type: "PoseCreate"
   bottom: "label_pose_1st"
-  bottom: "label"
+  bottom: "label_shrink"
   top: "label_heatmap"
   pose_create_param {
     num_joint: 9
   }
 }
-layer {
-  bottom: "fc8_human"
-  top: "fc8_interp"
-  name: "fc8_interp"
-  type: "Interp"
-  interp_param {
-    zoom_factor: 8
+layer{
+  name: "posegt_heatmap"
+  type: "PoseCreate"
+  bottom: "pose_gt"
+  bottom: "label_shrink"
+  top: "posegt_heatmap"
+  pose_create_param {
+    num_joint: 9
   }
 }
 layer {
   name: "fc8_mask_1st"
   type: "MaskCreate"
-  bottom: "fc8_interp"
+  bottom: "fc8_${EXP}"
   top: "fc8_mask_1st"
   mask_create_param {
     num_cls: 20
@@ -645,25 +888,53 @@ layer {
     num_joint: 9
   }
 }
-
-#layer {
-#  name: "draw_heatmap"
-#  type: "HeatmapDraw"
-#  bottom: "predict_heatmap"
-#  heatmap_draw_param {
-#    prefix: "human/features/vgg16/val/label_mat/"
-#    source: "human/list/val_id.txt"
-#  }
-#}
+layer {
+  name: "heatmap_error"
+  type: "HeatmapError"
+  bottom: "predict_heatmap"
+  bottom: "label_heatmap"
+  top: "heatmap_error"
+  heatmap_error_param {
+    scale: 0.1
+  }
+  propagate_down:false
+  propagate_down:false
+}
+layer {
+  name: "heatmap_error2"
+  type: "HeatmapError"
+  bottom: "predict_heatmap"
+  bottom: "posegt_heatmap"
+  top: "heatmap_error2"
+  heatmap_error_param {
+    scale: 0.08
+  }
+  propagate_down:false
+  propagate_down:false
+}
 
 layer {
-  name: "label_mat"
-  type: "MatWrite"
-  bottom: "label_heatmap"
-  mat_write_param {
-    prefix: "human/features/vgg16/val/label_mat/"
-    source: "human/list/val_id.txt"
-    period: 1
+  name: "loss"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_${EXP}"
+  bottom: "label_shrink"
+#  bottom: "heatmap_error"
+  include {
+    phase: TRAIN
+  }
+  loss_param {
+    ignore_label: 255
+  }
+}
+
+layer {
+  name: "accuracy"
+  type: "SegAccuracy"
+  bottom: "fc8_${EXP}"
+  bottom: "label_shrink"
+  top: "accuracy"
+  seg_accuracy_param {
+    ignore_label: 255
   }
 }
 
@@ -671,5 +942,5 @@ layer {
   name: "silence"
   type: "Silence"
   bottom: "data_dim"
-  bottom: "predict_heatmap"
 }
+

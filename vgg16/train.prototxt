@@ -1,1 +1,1 @@
-train_vgg16_heatmap.prototxt
+train_vgg16_posegt_heatmap.prototxt
