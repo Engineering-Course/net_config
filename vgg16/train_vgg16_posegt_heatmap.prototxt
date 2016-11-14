@@ -13,7 +13,6 @@ layer {
     phase: TRAIN
   }
   transform_param {
-    mirror: true
     crop_size: 641
     mean_value: 104.008
     mean_value: 116.669
