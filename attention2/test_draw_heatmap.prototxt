@@ -15,7 +15,7 @@ layer {
   top: "label"
   image_data_param {
     root_folder: "${DATA_ROOT}"
-    source: "${EXP}/list/10k/${TEST_SET}.txt"
+    source: "${EXP}/list/${TEST_SET}.txt"
     batch_size: 1
 #    label_type: NONE
     label_type: PIXEL
@@ -1839,7 +1839,7 @@ layer {
   bottom: "label_heatmap"
   mat_write_param {
     prefix: "${FEATURE_DIR}/${TEST_SET}/label_mat/"
-    source: "${EXP}/list/10k/${TEST_SET}_id.txt"
+    source: "${EXP}/list/${TEST_SET}_id.txt"
     period: 1
   }
 }
@@ -1849,7 +1849,7 @@ layer {
   bottom: "predict_heatmap"
   mat_write_param {
     prefix: "${FEATURE_DIR}/${TEST_SET}/pre_mat/"
-    source: "${EXP}/list/10k/${TEST_SET}_id.txt"
+    source: "${EXP}/list/${TEST_SET}_id.txt"
     period: 1
   }
 }

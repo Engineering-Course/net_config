@@ -1877,7 +1877,7 @@ layer {
   bottom: "label_heatmap"
   top: "heatmap_error"
   heatmap_error_param {
-    scale: 0.1
+    scale: 0.05
   }
   propagate_down:false
   propagate_down:false

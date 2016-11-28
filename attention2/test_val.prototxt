@@ -17,8 +17,8 @@ layer {
     root_folder: "human/data/"
     source: "human/list/val.txt"
     batch_size: 1
-    label_type: NONE
-#    label_type: PIXEL
+#    label_type: NONE
+    label_type: PIXEL
   }
   transform_param {
     mean_value: 104.008
@@ -1777,6 +1777,25 @@ layer {
 #  }
 #}
 layer {
+  name: "label_pose_1st"
+  type: "PoseEvaluate"
+  bottom: "label"
+  top: "label_pose_1st"
+  pose_evaluate_param {
+    num_joint: 9
+  }
+}
+layer{
+  name: "label_heatmap"
+  type: "PoseCreate"
+  bottom: "label_pose_1st"
+  bottom: "label"
+  top: "label_heatmap"
+  pose_create_param {
+    num_joint: 9
+  }
+}
+layer {
   bottom: "fc8_fusion"
   top: "fc8_interp"
   name: "fc8_interp"
@@ -1785,42 +1804,80 @@ layer {
     zoom_factor: 8
   }
 }
-
 layer {
-  bottom: "fc8_interp"
-  top: "fc8_mask"
-  name: "fc8_mask"
+  name: "fc8_mask_1st"
   type: "MaskCreate"
-  mask_create_param{
+  bottom: "fc8_interp"
+  top: "fc8_mask_1st"
+  mask_create_param {
     num_cls: 20
   }
 }
+layer {
+  name: "fc8_pose_1st"
+  type: "PoseEvaluate"
+  bottom: "fc8_mask_1st"
+  top: "fc8_pose_1st"
+  pose_evaluate_param {
+    num_joint: 9
+  }
+}
+layer {
+  name: "predict_heatmap"
+  type: "PoseCreate"
+  bottom: "fc8_pose_1st"
+  bottom: "fc8_mask_1st"
+  top: "predict_heatmap"
+  pose_create_param {
+    num_joint: 9
+  }
+}
 
 layer {
-  name: "fc8_mat"
+  name: "label_mat"
   type: "MatWrite"
-  bottom: "fc8_mask"
+  bottom: "label_heatmap"
   mat_write_param {
-    prefix: "human/features/attention2/val/fc8_mask/"
+    prefix: "human/features/attention2/val/label_mat/"
     source: "human/list/val_id.txt"
-    strip: 0
     period: 1
   }
-  include: { phase: TEST }
+}
+layer {
+  name: "pre_mat"
+  type: "MatWrite"
+  bottom: "predict_heatmap"
+  mat_write_param {
+    prefix: "human/features/attention2/val/pre_mat/"
+    source: "human/list/val_id.txt"
+    period: 1
+  }
 }
 #layer {
-#  name: "accuracy"
-#  type: "SegAccuracy"
-#  bottom: "fc8_fusion"
-#  bottom: "label_shrink8"
-#  top: "accuracy"
-#  seg_accuracy_param {
-#    ignore_label: 255
-#  } 
+#  bottom: "fc8_interp"
+#  top: "fc8_mask"
+#  name: "fc8_mask"
+#  type: "MaskCreate"
+#  mask_create_param{
+#    num_cls: 20
+#  }
 #}
 #
-layer {
-  name: "silence"
-  type: "Silence"
-  bottom: "label"
-}
+#layer {
+#  name: "fc8_mat"
+#  type: "MatWrite"
+#  bottom: "fc8_mask"
+#  mat_write_param {
+#    prefix: "human/features/attention2/val/fc8_mask/"
+#    source: "human/list/val_id.txt"
+#    strip: 0
+#    period: 1
+#  }
+#  include: { phase: TEST }
+#}
+
+#layer {
+#  name: "silence"
+#  type: "Silence"
+#  bottom: "label"
+#}

@@ -5,12 +5,12 @@ power: 0.9
 base_lr: 1e-4
 
 average_loss: 20
-display: 3
-max_iter: 15240
+display: 20
+max_iter: 10000000
 momentum: 0.9
 weight_decay: 0.0005
 
-snapshot: 1524
+snapshot: 1904
 snapshot_prefix: "human/model/vgg16/train"
 solver_mode: GPU
 #debug_info: true

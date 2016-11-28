@@ -21,7 +21,7 @@ layer {
   image_data_param {
     root_folder: "${DATA_ROOT}"
     source: "${EXP}/list/${TRAIN_SET}.txt"
-    batch_size: 20
+    batch_size: 16
     shuffle: true
     label_type: PIXEL
   }
@@ -882,7 +882,7 @@ layer {
   bottom: "label_heatmap"
   top: "heatmap_error"
   heatmap_error_param {
-    scale: 0.1
+    scale: 0.05
   }
   propagate_down:false
   propagate_down:false
