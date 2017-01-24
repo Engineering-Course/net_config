@@ -1,6 +1,6 @@
 # 
 
-name: "${NET_ID}"
+name: "attention"
 
 ### load data ###
 layer {
@@ -9,8 +9,8 @@ layer {
   top: "data"
   top: "label"
   image_data_param {
-    root_folder: "${DATA_ROOT}"
-    source: "${EXP}/list/${TRAIN_SET}.txt"
+    root_folder: "human/data/"
+    source: "human/list/train.txt"
     label_type: PIXEL
     batch_size: 12
     shuffle: true
@@ -529,8 +529,8 @@ layer {
 ############### classifier for resolution 1###################
 layer {
   bottom: "fc7"
-  top: "fc8_${EXP}"
-  name: "fc8_${EXP}"
+  top: "fc8_human"
+  name: "fc8_human"
   type: "Convolution"
   param {
     name: "fc8_w"
@@ -543,7 +543,7 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: ${NUM_LABELS}
+    num_output: 20
     kernel_size: 1
     weight_filler {
       type: "gaussian"
@@ -574,7 +574,7 @@ layer {
 layer {
   name: "loss_res1"
   type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}"
+  bottom: "fc8_human"
   bottom: "label_shrink8"
   loss_param {
     ignore_label: 255
@@ -584,7 +584,7 @@ layer {
 layer {
   name: "accuracy_res1"
   type: "SegAccuracy"
-  bottom: "fc8_${EXP}"
+  bottom: "fc8_human"
   bottom: "label_shrink8"
   top: "accuracy_res1"
   seg_accuracy_param {
