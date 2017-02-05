@@ -10,20 +10,18 @@ layer {
   top: "label"
   image_data_param {
     root_folder: "${DATA_ROOT}"
-    source: "${EXP}/list/${TRAIN_SET}.txt"
-    label_type: PIXEL
-    batch_size: 30
-    shuffle: true
+    source: "${EXP}/list/${TEST_SET}.txt"
+    batch_size: 1
+    label_type: NONE
   }
   transform_param {
     mean_value: 104.008
     mean_value: 116.669
     mean_value: 122.675
-    crop_size: 153
-    scale_factors: 1
-    mirror: true
+    crop_size: 640
+    mirror: false
   }
-  include: { phase: TRAIN }
+  include: { phase: TEST }
 }
 
 ### NETWORK for resolution 1 ###
@@ -552,38 +550,42 @@ layer {
   }
 }
 
-############### shrink label ################
+
 layer {
-  bottom: "label"
-  top: "label_shrink8"
-  name: "label_shrink8"
+  bottom: "fc8_${EXP}"
+  top: "fc8_interp"
+  name: "fc8_interp"
   type: "Interp"
   interp_param {
-    shrink_factor: 8
-    pad_beg: 0
-    pad_end: 0
+    zoom_factor: 8
   }
 }
 
-############## add supervsion to fc8's directly ##########
-## resolution 1
 layer {
-  name: "loss_res1"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8_${EXP}"
-  bottom: "label_shrink8"
-  loss_param {
-    ignore_label: 255
+  bottom: "fc8_interp"
+  top: "fc8_mask"
+  name: "fc8_mask"
+  type: "MaskCreate"
+  mask_create_param {
+    num_cls: 20
   }
-  include: { phase: TRAIN }
 }
+
 layer {
-  name: "accuracy_res1"
-  type: "SegAccuracy"
-  bottom: "fc8_${EXP}"
-  bottom: "label_shrink8"
-  top: "accuracy_res1"
-  seg_accuracy_param {
-    ignore_label: 255
-  } 
+  name: "fc8_mat"
+  type: "MatWrite"
+  bottom: "fc8_mask"
+  mat_write_param {
+    prefix: "${FEATURE_DIR}/${TEST_SET}/fc8_mask/"
+    source: "${EXP}/list/${TEST_SET}_id.txt"
+    strip: 0
+    period: 1
+  }
+  include: {phase: TEST}
+}
+
+layer {
+  name: "silence"
+  type: "Silence"
+  bottom: "label"
 }

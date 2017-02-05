@@ -7,11 +7,11 @@ stepsize: 200000
 base_lr: 0.0001
 
 display: 20
-max_iter: 127000 
+max_iter: 61000 
 momentum: 0.9
 weight_decay: 0.0005
 
-snapshot: 1270
+snapshot: 610
 snapshot_prefix: "human/model/attention/train"
 solver_mode: GPU
 #debug_info: true

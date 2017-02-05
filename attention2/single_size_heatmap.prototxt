@@ -20,7 +20,11 @@ layer {
     mean_value: 116.669
     mean_value: 122.675
     crop_size: 153
+#    scale_factors: 0.6
+#    scale_factors: 0.8
     scale_factors: 1
+#    scale_factors: 1.2
+#    scale_factors: 1.4
     mirror: true
   }
   include: { phase: TRAIN }
@@ -564,14 +568,74 @@ layer {
     pad_end: 0
   }
 }
+layer {
+  name: "label_pose_1st"
+  type: "PoseEvaluate"
+  bottom: "label_shrink8"
+  top: "label_pose_1st"
+  pose_evaluate_param {
+    num_joint: 9
+  }
+}
+layer {
+  name: "label_heatmap"
+  type: "PoseCreate"
+  bottom: "label_pose_1st"
+  bottom: "label_shrink8"
+  top: "label_heatmap"
+  pose_create_param {
+    num_joint: 9
+  }
+}
 
 ############## add supervsion to fc8's directly ##########
 ## resolution 1
+layer {
+  name: "fc8_mask_1st"
+  type: "MaskCreate"
+  bottom: "fc8_${EXP}"
+  top: "fc8_mask_1st"
+  mask_create_param {
+    num_cls: 20
+  }
+}
+layer {
+  name: "fc8_pose_1st"
+  type: "PoseEvaluate"
+  bottom: "fc8_mask_1st"
+  top: "fc8_pose_1st"
+  pose_evaluate_param {
+    num_joint: 9
+  }
+}
+layer {
+  name: "predict_heatmap"
+  type: "PoseCreate"
+  bottom: "fc8_pose_1st"
+  bottom: "fc8_mask_1st"
+  top: "predict_heatmap"
+  pose_create_param {
+    num_joint: 9
+  }
+}
+layer {
+  name: "heatmap_error"
+  type: "HeatmapError"
+  bottom: "predict_heatmap"
+  bottom: "label_heatmap"
+  top: "heatmap_error"
+  heatmap_error_param {
+    scale:0.05
+  }
+  propagate_down:false
+  propagate_down:false
+}
 layer {
   name: "loss_res1"
   type: "SoftmaxWithLoss"
   bottom: "fc8_${EXP}"
   bottom: "label_shrink8"
+  bottom: "heatmap_error"
   loss_param {
     ignore_label: 255
   }

@@ -1,13 +1,7 @@
-# VGG 16-layer network convolutional finetuning
-# Network modified to have smaller receptive field (128 pixels)
-# and smaller stride (8 pixels) when run in convolutional mode.
-#
-# In this model we also change max pooling size in the first 4 layers
-# from 2 to 3 while retaining stride = 2
-# which makes it easier to exactly align responses at different layers.
-#
+
 name: "${NET_ID}"
 
+### load data ###
 layer {
   name: "data"
   type: "ImageSegData"
@@ -15,20 +9,26 @@ layer {
   top: "label"
   image_data_param {
     root_folder: "${DATA_ROOT}"
-    source: "${EXP}/list/${TEST_SET}.txt"
-    batch_size: 1
-#    label_type: NONE
+    source: "${EXP}/list/${TRAIN_SET}.txt"
     label_type: PIXEL
+    batch_size: 15
+    shuffle: true
   }
   transform_param {
     mean_value: 104.008
     mean_value: 116.669
     mean_value: 122.675
-    crop_size: 640
-    mirror: false
+    crop_size: 321
+    scale_factors: 0.6
+    scale_factors: 0.8
+    scale_factors: 1
+    scale_factors: 1.2
+    scale_factors: 1.4
+    mirror: true
   }
-  include: { phase: TEST }
+  include: { phase: TRAIN }
 }
+
 ### shrink data ###
 layer {
   bottom: "data"
@@ -1559,8 +1559,17 @@ layer {
   convolution_param {
     num_output: ${NUM_LABELS}
     kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
+
 
 ############### classifier for resolution 1/2 ###################
 layer {
@@ -1581,9 +1590,16 @@ layer {
   convolution_param {
     num_output: ${NUM_LABELS}
     kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
-
 ############### classifier for resolution 3/4 ###################
 layer {
   bottom: "fc7_res075"
@@ -1603,9 +1619,16 @@ layer {
   convolution_param {
     num_output: ${NUM_LABELS}
     kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
-
 ############### upsampling ##################
 layer {
   bottom: "fc7_res05"
@@ -1641,6 +1664,8 @@ layer {
     pad_end: 0
   }
 }
+
+
 layer {
   bottom: "fc8_${EXP}_res075"
   top: "fc8_${EXP}_res075_interp"
@@ -1653,6 +1678,7 @@ layer {
     pad_end: 0
   }
 }
+
 
 ############### concatenation and pass through attention model #########
 layer {
@@ -1668,11 +1694,20 @@ layer {
 }
 
 ### attention model
+# change lr_mult to be 1, since it has been pretrained on coco
 layer {
   bottom: "fc7_concat"
   top: "att_conv1"
   name: "att_conv1"
   type: "Convolution"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 512
     kernel_size: 3
@@ -1700,6 +1735,14 @@ layer {
   top: "att_fc"
   name: "att_fc"
   type: "Convolution"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
   convolution_param {
     num_output: 3
     kernel_size: 1
@@ -1736,6 +1779,7 @@ layer {
   type: "SpatialProduct"
 }
 
+
 layer {
   bottom: "fc8_${EXP}_res075_interp"
   bottom: "attention2"
@@ -1744,6 +1788,7 @@ layer {
   type: "SpatialProduct"
 }
 
+
 layer {
   bottom: "fc8_${EXP}_res05_interp"
   bottom: "attention3"
@@ -1751,6 +1796,7 @@ layer {
   name: "fc8_res05_product"
   type: "SpatialProduct"
 }
+
 
 ### add features ###
 layer {
@@ -1764,22 +1810,22 @@ layer {
     operation: SUM
   }
 }
-############### upsampling ################
-#layer {
-#  bottom: "label"
-#  top: "label_shrink8"
-#  name: "label_shrink8"
-#  type: "Interp"
-#  interp_param {
-#    shrink_factor: 8
-#    pad_beg: 0
-#    pad_end: 0
-#  }
-#}
+############### shrink label ################
+layer {
+  bottom: "label"
+  top: "label_shrink8"
+  name: "label_shrink8"
+  type: "Interp"
+  interp_param {
+    shrink_factor: 8
+    pad_beg: 0
+    pad_end: 0
+  }
+}
 layer {
   name: "label_pose_1st"
   type: "PoseEvaluate"
-  bottom: "label"
+  bottom: "label_shrink8"
   top: "label_pose_1st"
   pose_evaluate_param {
     num_joint: 9
@@ -1789,25 +1835,17 @@ layer{
   name: "label_heatmap"
   type: "PoseCreate"
   bottom: "label_pose_1st"
-  bottom: "label"
+  bottom: "label_shrink8"
   top: "label_heatmap"
   pose_create_param {
     num_joint: 9
   }
 }
-layer {
-  bottom: "fc8_fusion"
-  top: "fc8_interp"
-  name: "fc8_interp"
-  type: "Interp"
-  interp_param {
-    zoom_factor: 8
-  }
-}
+############### compute loss first order#################
 layer {
   name: "fc8_mask_1st"
   type: "MaskCreate"
-  bottom: "fc8_interp"
+  bottom: "fc8_fusion"
   top: "fc8_mask_1st"
   mask_create_param {
     num_cls: 20
@@ -1832,52 +1870,125 @@ layer {
     num_joint: 9
   }
 }
-
 layer {
-  name: "label_mat"
-  type: "MatWrite"
-  bottom: "label_heatmap"
-  mat_write_param {
-    prefix: "${FEATURE_DIR}/${TEST_SET}/label_mat/"
-    source: "${EXP}/list/${TEST_SET}_id.txt"
-    period: 1
-  }
-}
-layer {
-  name: "pre_mat"
-  type: "MatWrite"
+  name: "heatmap_error"
+  type: "HeatmapError"
   bottom: "predict_heatmap"
-  mat_write_param {
-    prefix: "${FEATURE_DIR}/${TEST_SET}/pre_mat/"
-    source: "${EXP}/list/${TEST_SET}_id.txt"
-    period: 1
+  bottom: "label_heatmap"
+  top: "heatmap_error"
+  heatmap_error_param {
+    scale: 0.05
+  }
+  propagate_down:false
+  propagate_down:false
+}
+layer {
+  name: "loss_first"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_fusion"
+  bottom: "label_shrink8"
+  bottom: "heatmap_error"
+  top: "loss_first"
+  loss_param {
+    ignore_label: 255
   }
 }
-#layer {
-#  bottom: "fc8_interp"
-#  top: "fc8_mask"
-#  name: "fc8_mask"
-#  type: "MaskCreate"
-#  mask_create_param{
-#    num_cls: 20
-#  }
-#}
-#
-#layer {
-#  name: "fc8_mat"
-#  type: "MatWrite"
-#  bottom: "fc8_mask"
-#  mat_write_param {
-#    prefix: "${FEATURE_DIR}/${TEST_SET}/fc8_mask/"
-#    source: "${EXP}/list/${TEST_SET}_id.txt"
-#    strip: 0
-#    period: 1
-#  }
-#  include: { phase: TEST }
-#}
+layer {
+  name: "accuracy_first"
+  type: "SegAccuracy"
+  bottom: "fc8_fusion"
+  bottom: "label_shrink8"
+  top: "accuracy_first"
+  seg_accuracy_param {
+    ignore_label: 255
+  }
+}
 
-#layer {
-#  name: "silence"
-#  type: "Silence"
-#  bottom: "label"
-#}
+############## add supervsion to fc8's directly ##########
+## resolution 1
+layer {
+  name: "loss_first_res1"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_${EXP}"
+  bottom: "label_shrink8"
+  bottom: "heatmap_error"
+  top: "loss_first_res1"
+  loss_param {
+    ignore_label: 255
+  }
+  include: { phase: TRAIN }
+}
+layer {
+  name: "accuracy_first_res1"
+  type: "SegAccuracy"
+  bottom: "fc8_${EXP}"
+  bottom: "label_shrink8"
+  top: "accuracy_first_res1"
+  seg_accuracy_param {
+    ignore_label: 255
+  } 
+}
+
+## resolution 3/4
+# interp layer does not support 3/4 scale for ground truth
+# instead we interpolate score map
+layer {
+  name: "loss_first_res075"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_${EXP}_res075_interp"
+  bottom: "label_shrink8"
+  bottom: "heatmap_error"
+  top: "loss_first_res075"
+  loss_param {
+    ignore_label: 255
+  }
+  include: { phase: TRAIN }
+}
+layer {
+  name: "accuracy_first_res075"
+  type: "SegAccuracy"
+  bottom: "fc8_${EXP}_res075_interp"
+  bottom: "label_shrink8"
+  top: "accuracy_first_res075"
+  seg_accuracy_param {
+    ignore_label: 255
+  } 
+}
+
+## resolution 1/2
+layer {
+  bottom: "label"
+  top: "label_shrink16"
+  name: "label_shrink16"
+  type: "Interp"
+  interp_param {
+    shrink_factor: 16
+    pad_beg: 0
+    pad_end: 0
+  }
+}
+layer {
+  name: "loss_first_res05"
+  type: "SoftmaxWithLoss"
+  bottom: "fc8_${EXP}_res05"
+  bottom: "label_shrink16"
+  bottom: "heatmap_error"
+  top: "loss_first_res05"
+  loss_param {
+    ignore_label: 255
+  }
+  include: { phase: TRAIN }
+}
+layer {
+  name: "accuracy_first_res05"
+  type: "SegAccuracy"
+  bottom: "fc8_${EXP}_res05"
+  bottom: "label_shrink16"
+  top: "accuracy_first_res05"
+  seg_accuracy_param {
+    ignore_label: 255
+  } 
+}
+
+
+
